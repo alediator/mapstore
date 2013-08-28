@@ -107,6 +107,18 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
      */
     regex:"\\s*$",
 
+    /** api: config[format]
+     *  ``String``
+     *  Format to show feature info ('grid' | 'html'). Default it's 'html'.
+     */
+    format: "html",
+
+    /** api: config[defaultGroupTitleText]
+     *  ``String``
+     *  Default feature title in 'grid' showing. Layer name replaces '{0}' and index in tue request replaces '{1}'.
+     */
+    defaultGroupTitleText: "{0} [{1}]",
+
     /** api: config[vendorParams]
      *  ``Object``
      *  Optional object with properties to be serialized as vendor specific
@@ -227,11 +239,15 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
 				if(!vendorParams.env || vendorParams.env.indexOf('locale:') == -1) {
 					vendorParams.env = vendorParams.env ? vendorParams.env + ';locale:' + GeoExt.Lang.locale : 'locale:' + GeoExt.Lang.locale;
 				}
+
+				// Obtain info format
+            	var infoFormat = this.getInfoFormat(x);
 				
                 var control = new OpenLayers.Control.WMSGetFeatureInfo({
                     url: l.url,
                     queryVisible: true,
                     layers: [x.getLayer()],
+                    infoFormat: infoFormat,
                     vendorParams: vendorParams,
                     eventListeners: {
                         beforegetfeatureinfo: function(evt) {
@@ -255,20 +271,17 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
 								started=false;
 								
 							}
-							
-							// ////////////////////////////////////////////////////
-							// This function assume that teh body is empty in order 
-							// to return noDataMsg (no features)
-							// ////////////////////////////////////////////////////
-                            var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
-                            if (match && match[1].match(this.regex)) {
-                                atLeastOneResponse = true;
-                                this.displayPopup(
-                                    evt, x.get("title") || x.get("name"), match[1], function() {
-										/*layersToQuery=0;
-										this.unmask();*/
-									}, this
-                                );
+
+                            var title = x.get("title") || x.get("name");
+                            if (infoFormat == "text/html") {
+                                var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
+                                if (match && !match[1].match(/^\s*$/)) {
+                                    this.displayPopup(evt, title, match[1]);
+                                }
+                            } else if (infoFormat == "text/plain") {
+                                this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
+                            } else if (evt.features && evt.features.length > 0) {
+                                this.displayPopup(evt, title, null, null, null, evt.features);
                             // no response at all
                             } else if(layersToQuery === 0 && !atLeastOneResponse) {
                                 Ext.Msg.show({
@@ -332,23 +345,14 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
      * :arg title: a String to use for the title of the results section 
      *     reporting the info to the user
      * :arg text: ``String`` Body text.
+     * :arg features: ``Array`` With features.
      */
-    displayPopup: function(evt, title, text, onClose, scope) {
+    displayPopup: function(evt, title, text, onClose, scope, features) {
         var popup;
         var popupKey = evt.xy.x + "." + evt.xy.y;
-						
-		var item = this.useTabPanel ? {
-			title: title,										
-			html: text,
-			autoScroll: true
-		} : {
-            title: title,			
-            layout: "fit",			
-            html: text,
-            autoScroll: true,
-            autoWidth: true,
-            collapsible: true
-        };
+
+        
+        var item = this.getPopupItem(text, title, features);
 						
         if (!(popupKey in this.popupCache)) {
 			if(this.closePrevious) {
@@ -396,6 +400,45 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
         popup.doLayout();
     },
 	
+    /** private: method[getPopupItem]
+     * :arg text: ``String`` Body text.
+     * :arg title: a String to use for the title of the results section 
+     *     reporting the info to the user
+     * :arg features: ``Array`` With features.
+     */
+    getPopupItem:function(text, title, features){
+    	var item;
+    	if(features){
+	    	 item = this.useTabPanel ? {
+	            title: title,     
+	            layout: "accordion",
+	            items: this.obtainFeatureInfoFromData(text, features, title),
+	            autoScroll: true
+	        } : {
+	            title: title,           
+	            layout: "accordion",  
+	            items: this.obtainFeatureInfoFromData(text, features, title),
+	            autoScroll: true,
+	            autoWidth: true,
+	            collapsible: true
+	        };
+	    }else{
+	    	item = this.useTabPanel ? {
+				title: title,										
+				html: text,
+				autoScroll: true
+			} : {
+	            title: title,			
+	            layout: "fit",			
+	            html: text,
+	            autoScroll: true,
+	            autoWidth: true,
+	            collapsible: true
+	        };
+	    }
+	    return item;
+    },
+	
 	/** private: method[toggleActiveControl] 
 	 *  toggles the active control (on Mouse Hover).
      */
@@ -421,74 +464,159 @@ gxp.plugins.WMSGetFeatureInfoMenu = Ext.extend(gxp.plugins.Tool, {
 			sm.un('selectionchange',this.changeSelected,this);
 		}
 	},
-	/** private: method[activateActiveControl] 
-	 *  activate the active control. called on tool activation
-	 *  if a layer is selected, or on selectionchangeEvent
+    /** private: method[activateActiveControl] 
+     *  activate the active control. called on tool activation
+     *  if a layer is selected, or on selectionchangeEvent
      */
-	activateActiveControl: function(layer, title){
-		this.cleanActiveControl();
-		var tooltip;
-		var cleanup = function() {
-			if (tooltip) {
-				tooltip.destroy();
-			}  
-		};
-		
-		var vendorParams = {};
-		Ext.apply(vendorParams, layer.vendorParams || this.vendorParams || {});
-		if(!vendorParams.env || vendorParams.env.indexOf('locale:') == -1) {
-			vendorParams.env = vendorParams.env ? vendorParams.env + ';locale:' + GeoExt.Lang.locale : 'locale:' + GeoExt.Lang.locale;
-		}
-				
-		var control = new OpenLayers.Control.WMSGetFeatureInfo({
-			title: 'Identify features by clicking',
-			layers: [layer],
-			vendorParams: vendorParams,
-			hover: true,
-			queryVisible: true,
-			handlerOptions:{	
-				hover: {delay: 200,pixelTolerance:2}
-			},
-			eventListeners:{
-				scope:this,
-				
-				getfeatureinfo:function(evt){
-					cleanup();
-					// ////////////////////////////////////////////////////
-					// This function assume that teh body is empty in order 
-					// to return noDataMsg (no features)
-					// ////////////////////////////////////////////////////
-					var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
-					if (match && match[1].match(this.regex)) {
-						tooltip = new GeoExt.Popup({
-							
-							map: this.target.mapPanel,
-							panIn:true,
-							title: title || this.popupTitle,
-							width:490,
-							height:320,
-							autoScroll:false,
-							layout:'fit',
-							location:evt.xy,
-							resizable:true,
-							items:{xtype:'panel',autoScroll:true,html:'<div style="padding:5px">'+match[1]+'</div>'},
-							closable: true,
-							draggable: false,
-							listeners: {hide: cleanup}
-						});
-						
-						tooltip.show();
-					}
-					
+    activateActiveControl: function(layer, title){
+        this.cleanActiveControl();
+        var tooltip;
+        var cleanup = function() {
+            if (tooltip) {
+                tooltip.destroy();
+            }  
+        };
+        
+        var vendorParams = {};
+        Ext.apply(vendorParams, layer.vendorParams || this.vendorParams || {});
+        if(!vendorParams.env || vendorParams.env.indexOf('locale:') == -1) {
+            vendorParams.env = vendorParams.env ? vendorParams.env + ';locale:' + GeoExt.Lang.locale : 'locale:' + GeoExt.Lang.locale;
+        }
 
-				},deactivate: cleanup
-			}
-		});
-		this.target.mapPanel.map.addControl(control);
-		this.activeControl=control;
-		control.activate();
-		
-	},
+        var selectedLayer = this.target.mapPanel.layers.queryBy(function(x){
+            return (layer.id == x.getLayer().id) && x.get("queryable") ;
+        });
+
+        selectedLayer.each(function(x){      
+
+			// Obtain info format
+        	var infoFormat = this.getInfoFormat(x);
+                    
+            var control = new OpenLayers.Control.WMSGetFeatureInfo({
+                title: 'Identify features by clicking',
+                layers: [layer],
+                infoFormat: infoFormat,
+                vendorParams: vendorParams,
+                hover: true,
+                queryVisible: true,
+                handlerOptions:{    
+                    hover: {delay: 200,pixelTolerance:2}
+                },
+                eventListeners:{
+                    scope:this,
+                    
+                    getfeatureinfo:function(evt){
+                        cleanup();
+                        // Issue #91
+                        var title = x.get("title") || x.get("name");
+                        if (infoFormat == "text/html") {
+                            var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
+                            if (match && !match[1].match(/^\s*$/)) {
+                                this.displayPopup(evt, title, match[1]);
+                            }
+                        } else if (infoFormat == "text/plain") {
+                            this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
+                        } else if (evt.features && evt.features.length > 0) {
+                            this.displayPopup(evt, title, null, null, null, evt.features);
+                        } 
+                    },deactivate: cleanup
+                }
+            });
+            this.target.mapPanel.map.addControl(control);
+            this.activeControl=control;
+            control.activate();
+        }, this);
+        
+    },   
+
+    getInfoFormat: function(layer){
+
+    	var infoFormat;
+    	if(layer){
+    		infoFormat = layer.get("infoFormat");
+    	}
+        if (infoFormat === undefined) {
+            infoFormat = (this.format == "grid") ? "application/vnd.ogc.gml" : "text/html";
+        }
+        return infoFormat;
+    },
+    /** private: method[clearPopups]
+     *  Clear last popup openned. Fixes issue #178.
+     */
+    clearPopups: function(){
+        if(this._lastPopup){
+            this._lastPopup.hide();
+        }
+    },   
+    /** private: method[obtainFeatureInfoFromData]
+     *  Obtain feature info panel by layer
+     * :arg text: ``String`` Body text.
+     * :arg features: ``Array`` With features.
+     * :arg parentTitle: ``String`` Title of parent tab.
+     */
+    obtainFeatureInfoFromData: function(text, features, parentTitle) {
+
+        var featureGrids = [];
+
+        if (features) {
+            var index = 0;
+            Ext.each(features,function(feature) {
+                featureGrids.push(this.obtainFeatureGrid(feature, String.format(this.defaultGroupTitleText, parentTitle, index++)));
+            }, this);
+        }else {
+            featureGrids.push(this.obtainFromText(text));
+        }
+
+        return featureGrids;
+    },   
+    /** private: method[obtainFeatureGrid]
+     *  Obtain feature grid
+     * :arg feature: ``Object`` Feature data.
+     * :arg title: ``String`` Title for the grid.
+     */
+    obtainFeatureGrid: function(feature, title){
+
+        var fields = [];
+
+        Ext.iterate(feature.data,function(fieldName,fieldValue) {
+            // We add the field.
+            fields.push(fieldName);
+        });
+
+        var featureGridConfig = {
+            xtype: 'gxp_editorgrid',
+            readOnly: true,
+            title: title,
+            fields: fields,
+            feature: feature,
+            layout: {
+                type: 'vbox',
+                align: 'stretch',
+                pack: 'start'
+            },
+            listeners: {
+                'beforeedit': function(e) {
+                    return false;
+                }
+            }
+        };
+
+        return featureGridConfig;
+    },
+    /** private: method[obtainFromText]
+     *  Obtain a simple panel with text.
+     * :arg text: ``String`` Body text.
+     */
+    obtainFromText: function(text) {
+        return {
+            xtype: 'panel',
+            layout: 'fit',
+            items: {
+                xtype: 'label',
+                text: text ? text : this.noDataMsg
+            }
+        };
+    },
 	/**
 	 * private:[changeSelected]
 	 * method called on selection change. Is defined out the space
