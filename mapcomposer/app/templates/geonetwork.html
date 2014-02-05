@@ -230,7 +230,13 @@
 			// ///////////////////////////////////////////
 			// ---------------------------------------------------------------------
 			var gnBaseUrl = serverConfig.gnBaseUrl || ('http://' + window.location.host + '/geonetwork/');
-            var gnURL = gnBaseUrl + 'srv/' + code + '/main.home';
+			var widgetsMode = serverConfig.gnWidgetsMode;
+			var gnURL;
+			if(widgetsMode){
+				gnURL = gnBaseUrl + 'apps/search?hl=' + code;
+			}else{
+				gnURL = gnBaseUrl + 'srv/' + code + '/main.home';
+			}
 			
 			var geonetworkPanel = new Ext.Panel({
                 id: 'geonetworkPanel',

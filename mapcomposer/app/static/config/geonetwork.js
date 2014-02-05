@@ -1,6 +1,7 @@
 {
    "geoStoreBase":"",
    "gnBaseUrl": "",
+   "gnWidgetsMode": false,
    "defaultLanguage": "it",
    "advancedScaleOverlay": true,
    "tab": true,
