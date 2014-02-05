@@ -930,7 +930,7 @@ gxp.widgets.form.SpatialSelectorField = Ext.extend(Ext.form.FieldSet, {
 			items : [{
 				xtype : 'combo',
 				anchor : '100%',
-				id : 'selectionMethod_id',
+				id : me.id + '_selectionMethod_id',
 				ref : '../outputType',
 				fieldLabel : this.comboSelectionMethodLabel,
 				typeAhead : true,

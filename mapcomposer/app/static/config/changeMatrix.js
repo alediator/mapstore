@@ -198,155 +198,309 @@
             "ptype": "gxp_changematrix",
             "id" : "changeMatrixTool",
             "outputTarget": "eastcontrolpanel",
-            "wfsChangeMatrisGridPanel": "wfsChangeMatrisGridPanel",
-            "requestTimeout": 5000,
-            "wpsManagerID": "wpsManager",
-            "wpsChgMatrixProcessName" : "gs:ChangeMatrix",
-            "wpsUnionProcessID" : "JTS:union",
-            "wpsBufferProcessID" : "JTS:buffer",
-            "spatialOutputCRS" : "EPSG:4326",
-            "wfsBaseURL" : "http://localhost:8180/geoserver/wfs?",
-            "geocoderTypeName" : "it.geosolutions:geocoder",
-            "geocoderTypeTpl" : "<tpl for=\".\"><hr><div class=\"search-item\"><h3>{name}</span></h3>Parent: {custom}</div></tpl>",
-            "geocoderTypeRecordModel":[
-                    {
-                            "name":"id",
-                            "mapping":"id"
-                    },
-                    {
-                            "name":"name",
-                            "mapping":"properties.name"
-                    },
-                    {
-                            "name":"custom",
-                            "mapping":"properties.parent"
-                    },
-                    {
-                            "name":"geometry",
-                            "mapping":"geometry"
-                    }
-            ],
-		 	"geocoderTypeSortBy":"name",
-		 	"geocoderTypeQueriableAttributes":[
-				"name"
-			],
-			"geocoderTypeDisplayField":"name",
-			"geocoderTypePageSize" : 10,
-			"source": "jrc",
-			"nsPrefix": "it.geosolutions",
-            "storeName" : "unina_ds",
-            "typeName" : "changematrix",
-            "jiffleStyle" : "jiffle_style",
-            "showSelectionSummary" : true,
-            "zoomToCurrentExtent" : false,
-            "defaultStyle" : {
-		        "fillColor"   : "#FFFFFF",
-		        "strokeColor" : "#FF0000",
-		        "fillOpacity" : 0.5,
-		        "strokeWidth" : 1
-		    },
-            "selectStyle" : {
-		        "fillColor"   : "#FFFFFF",
-		        "strokeColor" : "#FF0000",
-		        "fillOpacity" : 0.5,
-		        "strokeWidth" : 1
-		    },
-			"temporaryStyle" : {
-				  "strokeColor": "#ee9900",
-				  "fillColor": "#ee9900",
-				  "fillOpacity": 0.4,
-				  "strokeWidth": 1
-			},
-			"labelStyle" : {
-				"fontColor": "#a52505",
-				"fontSize": "18px",
-				"fontFamily": "Courier New, monospace",
-				"fontWeight": "bold",
-				"label": "${label}",
-				"labelOutlineColor": "white",
-				"labelOutlineWidth": 5
-			},
-		    "bufferOptions": {
-				"minValue": 1,
-				"maxValue": 1000000,
-				"decimalPrecision": 2,
-				"distanceUnits": "m"
-			 },
-			"classesIndexes" : [
-			  [1,[
-				[1, "Water bodies"],
-				[2, "Agricultural areas"],
-				[3, "Forest and semi natural areas"],
-				[4, "Artificial surfaces"],
-				[5, "Wetlands"]
-			  ]],
-			  [2,[
-				[1, "Inland waters"],
-				[2, "Marine waters"],
-				[3, "Permanent crops"],
-				[4, "Pastures"],
-				[5, "Arable land"],
-				[6, "Heterogeneous agricultural areas"],
-				[7, "Open spaces with little or no vegetation"],
-				[8, "Forests"],
-				[9, "Scrub and/or herbaceous vegetation associations"],
-				[10, "Mine dump and construction sites"],
-				[11, "Industrial commercial and transport units"],
-				[12, "Inland wetlands"],
-				[13, "Maritime wetlands"],
-				[14, "Urban fabric"],
-				[15, "Artificial non-agricultural vegetated areas"]
-			  ]],
-			  [3,[
-				[1, "Airports"],
-				[2, "Natural grasslands"],
-				[3, "Transitional woodland-shrub"],
-				[4, "Sclerophyllous vegetation"],
-				[5, "Agro-forestry areas"],
-				[6, "Sparsely vegetated areas"],
-				[7, "Mineral extraction sites"],
-				[8, "Industrial or commercial units"],
-				[9, "Burnt areas"],
-				[10, "Port areas"],
-				[11, "Land principally occupied by agriculture, with significant areas of natural vegetation"],
-				[12, "Sport and leisure facilities"],
-				[13, "Green urban areas"],
-				[14, "Water bodies"],
-				[15, "Coniferous forest"],
-				[16, "Broad-leaved forest"],
-				[17, "Mixed forest"],
-				[18, "Moors and heathland"],
-				[19, "Construction sites"],
-				[20, "Annual crops associated with permanent crops"],
-				[21, "Water courses"],
-				[22, "Dump sites"],
-				[23, "Estuaries"],
-				[24, "Fruit trees and berry plantations"],
-				[25, "Glaciers and perpetual snow"],
-				[26, "Coastal lagoons"],
-				[27, "Sea and ocean"],
-				[28, "Inland marshes"],
-				[29, "Salt marshes"],
-				[30, "Pastures"],
-				[31, "Road and rail networks and associated land"],
-				[32, "Rice fields"],
-				[33, "Bare rocks"],
-				[34, "Salines"],
-				[35, "Permanently irrigated land"],
-				[36, "Non-irrigated arable land"],
-				[37, "Complex cultivation patterns"],
-				[38, "Beaches, dunes, sands"],
-				[39, "Continuous urban fabric"],
-				[40, "Discontinuous urban fabric"],
-				[41, "Peat bogs"],
-				[42, "Olive groves"],
-				[43, "Vineyards"]
-			 ]]
-			],
-            "classes": [
-            	{"layer": "it.geosolutions:unina",  "level": 1, "values": [1,2,3,4,5]},
-            	{"layer": "it.geosolutions:unina_", "level": 3, "values": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43]}
-            ]
+            "panelsConfig": [{
+            	"title": "Change Matrix",
+            	"wfsChangeMatrisGridPanel": "wfsChangeMatrisGridPanel",
+	            "requestTimeout": 5000,
+	            "wpsManagerID": "wpsManager",
+	            "wpsChgMatrixProcessName" : "gs:ChangeMatrix",
+	            "wpsUnionProcessID" : "JTS:union",
+	            "wpsBufferProcessID" : "JTS:buffer",
+	            "spatialOutputCRS" : "EPSG:4326",
+	            "wfsBaseURL" : "http://localhost:8180/geoserver/wfs?",
+	            "geocoderTypeName" : "it.geosolutions:geocoder",
+	            "geocoderTypeTpl" : "<tpl for=\".\"><hr><div class=\"search-item\"><h3>{name}</span></h3>Parent: {custom}</div></tpl>",
+	            "geocoderTypeRecordModel":[
+	                    {
+	                            "name":"id",
+	                            "mapping":"id"
+	                    },
+	                    {
+	                            "name":"name",
+	                            "mapping":"properties.name"
+	                    },
+	                    {
+	                            "name":"custom",
+	                            "mapping":"properties.parent"
+	                    },
+	                    {
+	                            "name":"geometry",
+	                            "mapping":"geometry"
+	                    }
+	            ],
+			 	"geocoderTypeSortBy":"name",
+			 	"geocoderTypeQueriableAttributes":[
+					"name"
+				],
+				"geocoderTypeDisplayField":"name",
+				"geocoderTypePageSize" : 10,
+				"source": "jrc",
+				"nsPrefix": "it.geosolutions",
+	            "storeName" : "unina_ds",
+	            "typeName" : "changematrix",
+	            "jiffleStyle" : "jiffle_style",
+	            "showSelectionSummary" : true,
+	            "zoomToCurrentExtent" : false,
+	            "defaultStyle" : {
+			        "fillColor"   : "#FFFFFF",
+			        "strokeColor" : "#FF0000",
+			        "fillOpacity" : 0.5,
+			        "strokeWidth" : 1
+			    },
+	            "selectStyle" : {
+			        "fillColor"   : "#FFFFFF",
+			        "strokeColor" : "#FF0000",
+			        "fillOpacity" : 0.5,
+			        "strokeWidth" : 1
+			    },
+				"temporaryStyle" : {
+					  "strokeColor": "#ee9900",
+					  "fillColor": "#ee9900",
+					  "fillOpacity": 0.4,
+					  "strokeWidth": 1
+				},
+				"labelStyle" : {
+					"fontColor": "#a52505",
+					"fontSize": "18px",
+					"fontFamily": "Courier New, monospace",
+					"fontWeight": "bold",
+					"label": "${label}",
+					"labelOutlineColor": "white",
+					"labelOutlineWidth": 5
+				},
+			    "bufferOptions": {
+					"minValue": 1,
+					"maxValue": 1000000,
+					"decimalPrecision": 2,
+					"distanceUnits": "m"
+				 },
+				"classesIndexes" : [
+				  [1,[
+					[1, "Water bodies"],
+					[2, "Agricultural areas"],
+					[3, "Forest and semi natural areas"],
+					[4, "Artificial surfaces"],
+					[5, "Wetlands"]
+				  ]],
+				  [2,[
+					[1, "Inland waters"],
+					[2, "Marine waters"],
+					[3, "Permanent crops"],
+					[4, "Pastures"],
+					[5, "Arable land"],
+					[6, "Heterogeneous agricultural areas"],
+					[7, "Open spaces with little or no vegetation"],
+					[8, "Forests"],
+					[9, "Scrub and/or herbaceous vegetation associations"],
+					[10, "Mine dump and construction sites"],
+					[11, "Industrial commercial and transport units"],
+					[12, "Inland wetlands"],
+					[13, "Maritime wetlands"],
+					[14, "Urban fabric"],
+					[15, "Artificial non-agricultural vegetated areas"]
+				  ]],
+				  [3,[
+					[1, "Airports"],
+					[2, "Natural grasslands"],
+					[3, "Transitional woodland-shrub"],
+					[4, "Sclerophyllous vegetation"],
+					[5, "Agro-forestry areas"],
+					[6, "Sparsely vegetated areas"],
+					[7, "Mineral extraction sites"],
+					[8, "Industrial or commercial units"],
+					[9, "Burnt areas"],
+					[10, "Port areas"],
+					[11, "Land principally occupied by agriculture, with significant areas of natural vegetation"],
+					[12, "Sport and leisure facilities"],
+					[13, "Green urban areas"],
+					[14, "Water bodies"],
+					[15, "Coniferous forest"],
+					[16, "Broad-leaved forest"],
+					[17, "Mixed forest"],
+					[18, "Moors and heathland"],
+					[19, "Construction sites"],
+					[20, "Annual crops associated with permanent crops"],
+					[21, "Water courses"],
+					[22, "Dump sites"],
+					[23, "Estuaries"],
+					[24, "Fruit trees and berry plantations"],
+					[25, "Glaciers and perpetual snow"],
+					[26, "Coastal lagoons"],
+					[27, "Sea and ocean"],
+					[28, "Inland marshes"],
+					[29, "Salt marshes"],
+					[30, "Pastures"],
+					[31, "Road and rail networks and associated land"],
+					[32, "Rice fields"],
+					[33, "Bare rocks"],
+					[34, "Salines"],
+					[35, "Permanently irrigated land"],
+					[36, "Non-irrigated arable land"],
+					[37, "Complex cultivation patterns"],
+					[38, "Beaches, dunes, sands"],
+					[39, "Continuous urban fabric"],
+					[40, "Discontinuous urban fabric"],
+					[41, "Peat bogs"],
+					[42, "Olive groves"],
+					[43, "Vineyards"]
+				 ]]
+				],
+	            "classes": [
+	            	{"layer": "it.geosolutions:unina",  "level": 1, "values": [1,2,3,4,5]},
+	            	{"layer": "it.geosolutions:unina_", "level": 3, "values": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43]}
+	            ]
+	        },{
+            	"title": "Change Matrix 2",
+            	"wfsChangeMatrisGridPanel": "wfsChangeMatrisGridPanel",
+	            "requestTimeout": 5000,
+	            "wpsManagerID": "wpsManager",
+	            "wpsChgMatrixProcessName" : "gs:ChangeMatrix",
+	            "wpsUnionProcessID" : "JTS:union",
+	            "wpsBufferProcessID" : "JTS:buffer",
+	            "spatialOutputCRS" : "EPSG:4326",
+	            "wfsBaseURL" : "http://localhost:8180/geoserver/wfs?",
+	            "geocoderTypeName" : "it.geosolutions:geocoder",
+	            "geocoderTypeTpl" : "<tpl for=\".\"><hr><div class=\"search-item\"><h3>{name}</span></h3>Parent: {custom}</div></tpl>",
+	            "geocoderTypeRecordModel":[
+	                    {
+	                            "name":"id",
+	                            "mapping":"id"
+	                    },
+	                    {
+	                            "name":"name",
+	                            "mapping":"properties.name"
+	                    },
+	                    {
+	                            "name":"custom",
+	                            "mapping":"properties.parent"
+	                    },
+	                    {
+	                            "name":"geometry",
+	                            "mapping":"geometry"
+	                    }
+	            ],
+			 	"geocoderTypeSortBy":"name",
+			 	"geocoderTypeQueriableAttributes":[
+					"name"
+				],
+				"geocoderTypeDisplayField":"name",
+				"geocoderTypePageSize" : 10,
+				"source": "jrc",
+				"nsPrefix": "it.geosolutions",
+	            "storeName" : "unina_ds",
+	            "typeName" : "changematrix",
+	            "jiffleStyle" : "jiffle_style",
+	            "showSelectionSummary" : true,
+	            "zoomToCurrentExtent" : false,
+	            "defaultStyle" : {
+			        "fillColor"   : "#FFFFFF",
+			        "strokeColor" : "#FF0000",
+			        "fillOpacity" : 0.5,
+			        "strokeWidth" : 1
+			    },
+	            "selectStyle" : {
+			        "fillColor"   : "#FFFFFF",
+			        "strokeColor" : "#FF0000",
+			        "fillOpacity" : 0.5,
+			        "strokeWidth" : 1
+			    },
+				"temporaryStyle" : {
+					  "strokeColor": "#ee9900",
+					  "fillColor": "#ee9900",
+					  "fillOpacity": 0.4,
+					  "strokeWidth": 1
+				},
+				"labelStyle" : {
+					"fontColor": "#a52505",
+					"fontSize": "18px",
+					"fontFamily": "Courier New, monospace",
+					"fontWeight": "bold",
+					"label": "${label}",
+					"labelOutlineColor": "white",
+					"labelOutlineWidth": 5
+				},
+			    "bufferOptions": {
+					"minValue": 1,
+					"maxValue": 1000000,
+					"decimalPrecision": 2,
+					"distanceUnits": "m"
+				 },
+				"classesIndexes" : [
+				  [1,[
+					[1, "Water bodies"],
+					[2, "Agricultural areas"],
+					[3, "Forest and semi natural areas"],
+					[4, "Artificial surfaces"],
+					[5, "Wetlands"]
+				  ]],
+				  [2,[
+					[1, "Inland waters"],
+					[2, "Marine waters"],
+					[3, "Permanent crops"],
+					[4, "Pastures"],
+					[5, "Arable land"],
+					[6, "Heterogeneous agricultural areas"],
+					[7, "Open spaces with little or no vegetation"],
+					[8, "Forests"],
+					[9, "Scrub and/or herbaceous vegetation associations"],
+					[10, "Mine dump and construction sites"],
+					[11, "Industrial commercial and transport units"],
+					[12, "Inland wetlands"],
+					[13, "Maritime wetlands"],
+					[14, "Urban fabric"],
+					[15, "Artificial non-agricultural vegetated areas"]
+				  ]],
+				  [3,[
+					[1, "Airports"],
+					[2, "Natural grasslands"],
+					[3, "Transitional woodland-shrub"],
+					[4, "Sclerophyllous vegetation"],
+					[5, "Agro-forestry areas"],
+					[6, "Sparsely vegetated areas"],
+					[7, "Mineral extraction sites"],
+					[8, "Industrial or commercial units"],
+					[9, "Burnt areas"],
+					[10, "Port areas"],
+					[11, "Land principally occupied by agriculture, with significant areas of natural vegetation"],
+					[12, "Sport and leisure facilities"],
+					[13, "Green urban areas"],
+					[14, "Water bodies"],
+					[15, "Coniferous forest"],
+					[16, "Broad-leaved forest"],
+					[17, "Mixed forest"],
+					[18, "Moors and heathland"],
+					[19, "Construction sites"],
+					[20, "Annual crops associated with permanent crops"],
+					[21, "Water courses"],
+					[22, "Dump sites"],
+					[23, "Estuaries"],
+					[24, "Fruit trees and berry plantations"],
+					[25, "Glaciers and perpetual snow"],
+					[26, "Coastal lagoons"],
+					[27, "Sea and ocean"],
+					[28, "Inland marshes"],
+					[29, "Salt marshes"],
+					[30, "Pastures"],
+					[31, "Road and rail networks and associated land"],
+					[32, "Rice fields"],
+					[33, "Bare rocks"],
+					[34, "Salines"],
+					[35, "Permanently irrigated land"],
+					[36, "Non-irrigated arable land"],
+					[37, "Complex cultivation patterns"],
+					[38, "Beaches, dunes, sands"],
+					[39, "Continuous urban fabric"],
+					[40, "Discontinuous urban fabric"],
+					[41, "Peat bogs"],
+					[42, "Olive groves"],
+					[43, "Vineyards"]
+				 ]]
+				],
+	            "classes": [
+	            	{"layer": "it.geosolutions:unina",  "level": 1, "values": [1,2,3,4,5]},
+	            	{"layer": "it.geosolutions:unina_", "level": 3, "values": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43]}
+	            ]
+	        }]
         },{
         	"ptype": "gxp_georeferences",
         	"actionTarget": "paneltbar"

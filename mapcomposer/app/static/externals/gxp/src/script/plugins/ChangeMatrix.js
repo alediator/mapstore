@@ -470,6 +470,18 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 	errorTimer : null,
 	roiFieldSet : null,
 
+	/** api: config[splitPanels]
+	 *  ``Boolean``
+	 *  Flag to split panelsConfig in different tabs.
+	 */
+	splitPanels: true,
+
+	/** api: config[panelsConfig]
+	 *  ``Object``
+	 *  Array of configurations for split on tab panels.
+	 */
+	panelsConfig: null,
+
 	/**
 	 *
 	 */
@@ -485,6 +497,65 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 	 *  :arg config: ``Object``
 	 */
 	addOutput : function(config) {
+
+		// Get panel
+		config = this.getPanel(config);
+
+		// ///////////////////
+		// Call super class addOutput method and return the panel instance
+		// ///////////////////
+		return gxp.plugins.ChangeMatrix.superclass.addOutput.call(this, config);
+	},
+
+	/** private: method[getPanel]
+	 *  :arg config: ``Object``
+	 *  Obtain the final panel with all tabs or a tab panel
+	 */
+	getPanel: function(config){
+
+		// Recursive case: Generate Tab panels 
+		if(this.splitPanels && this.panelsConfig){
+			var items = [];
+			// One panel for each panelsConfig;
+			if(this.panelsConfig){
+				for(var i = 0; i< this.panelsConfig.length; i++){
+					var newTab = new gxp.plugins.ChangeMatrix();
+					// We need to generate another 
+					// one with the configuration in this.panelsConfig[i]
+					Ext.apply(newTab, this.panelsConfig[i]);
+					// Set splitPanels to false to force base case
+					newTab.splitPanels = false;
+					// copy target
+					newTab.target = this.target;
+					// generate new id
+					newTab.id = this.id + "_tab_" + i;
+					items.push(newTab.getPanel());
+				}	
+			}
+
+			// The final configuration is a TabPanel
+			var tabPanel = new Ext.TabPanel({
+			    renderTo: Ext.getBody(),
+			    activeTab: 0,
+			    items: items
+			});
+
+			// use tabPanel with the recursive tabs
+			config = Ext.apply(tabPanel, config || {});
+		}else{
+			// Base case: not use tabPanel
+			config = Ext.apply(this.generatePanel(), config || {});
+		}
+
+		return config;
+
+	},
+
+	/** private: method[generatePanel]
+	 *  Generate a panel with the configuration present on this
+	 */
+	generatePanel: function(){
+
 		// /////////////////////////////////////
 		// Stores Array stores definitions.
 		// /////////////////////////////////////
@@ -574,7 +645,7 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 		// The main form
 		// ///////////////////
 		this.chgMatrixForm = new Ext.form.FormPanel({
-			id : 'change-matrix-form-panel',
+			ref : 'change-matrix-form-panel',
 			width : 355,
 			height : 380,
 			autoScroll : true,
@@ -593,7 +664,7 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 				},
 				items : [{
 					xtype : "combo",
-					id   : 'rasterComboBox',
+					ref   : 'rasterComboBox',
 					name : 'raster',
 					fieldLabel : this.changeMatrixRasterFieldLabel,
 					lazyInit : true,
@@ -689,7 +760,7 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 					}
 				}, {
 					xtype : "combo",
-					id   : 'filterT0ComboBox',
+					ref   : 'filterT0ComboBox',
 					name : 'filterT0',
 					fieldLabel : this.changeMatrixCQLFilterT0FieldLabel,
 					lazyInit : true,
@@ -710,7 +781,7 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 					}
 				}, {
 					xtype : "combo",
-					id   : 'filterT1ComboBox',
+					ref   : 'filterT1ComboBox',
 					name : 'filterT1',
 					fieldLabel : this.changeMatrixCQLFilterT1FieldLabel,
 					lazyInit : true,
@@ -750,8 +821,9 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 					// ItemSelector Ex
 					// ///////////////
 					imagesDir : 'theme/app/img/ux/',
-					id : 'classesselector',
+					ref : 'classesselector',
 					name : 'classesselector',
+					boxMaxWidth: 330,
 					anchor : '100%',
 
 					// ///////////////
@@ -823,13 +895,13 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 				}, {
 					text : this.changeMatrixSubmitButtonText,
 					iconCls : 'gxp-icon-zoom-next',
-					id : 'change-matrix-submit-button',
+					ref : 'change-matrix-submit-button',
 					handler : function() {
 						var form = me.chgMatrixForm.getForm();
 						var formIsValid = true;
 						
 						for (var itm = 0; itm < form.items.items.length; itm++) {
-							switch (form.items.items[itm].id) {
+							switch (form.items.items[itm].ref) {
 								case "rasterComboBox":
 								case "filterT0ComboBox":
 								case "filterT1ComboBox":
@@ -945,6 +1017,7 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 				}]
 			})
 		});
+		
 
 		// ///////////////////
 		// Create the control panel
@@ -957,12 +1030,8 @@ gxp.plugins.ChangeMatrix = Ext.extend(gxp.plugins.Tool, {
 			title : this.title,
 			items : [this.chgMatrixForm]
 		});
-		config = Ext.apply(cpanel, config || {});
 
-		// ///////////////////
-		// Call super class addOutput method and return the panel instance
-		// ///////////////////
-		return gxp.plugins.ChangeMatrix.superclass.addOutput.call(this, config);
+		return cpanel;
 	},
 
 	/** private: method[reloadLayers]
