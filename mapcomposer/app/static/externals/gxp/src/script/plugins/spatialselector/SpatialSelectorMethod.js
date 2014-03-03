@@ -221,6 +221,8 @@ gxp.plugins.spatialselector.SpatialSelectorMethod = Ext.extend(gxp.plugins.Tool,
 				var dataExtent = geometry.getBounds();
 				this.target.mapPanel.map.zoomToExtent(dataExtent, closest=false);
 			}
+			
+			this.output.fireEvent("geometrySelect", geometry);
 		} 
     }
 });
