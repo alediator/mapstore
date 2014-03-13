@@ -62,7 +62,7 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
      *  ``Array`` With the extra formats to download.
      *  For example: "CSV","shape-zip","excel", "excel2007"
      */
-    exportFormats: [],
+    exportFormats: null,
 
     /** api: config[exportFormatsConfig]
      *  ``Object`` With specific configuration by export format.
@@ -137,6 +137,16 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
      * Text for Export buttons (i18n).
      */
     displayExportText: "Export to {0}",
+
+    /** api: config[exportDoubleCheck]
+     *  ``Boolean`` Flag to make check before export
+     */
+    exportDoubleCheck: true,
+
+    /** api: config[downloadFormId]
+     *  ``String`` ID for the export form 
+     */
+    downloadFormId: "featureGrid_exportFormId",
     
     /** api: config[exportCSVSingleText]
      * ``String``
@@ -245,8 +255,8 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
      *  Default output format selection for export. Default is 'CSV'
      */
     defaultComboFormatValue: "CSV",
-	
-	zoomToFeature: "Zoom To Feature",
+    
+    zoomToFeature: "Zoom To Feature",
 
     /** private: method[displayTotalResults]
      */
@@ -397,7 +407,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
             listeners: {
                 "added": function(cmp, ownerCt) {
                     var onClear = OpenLayers.Function.bind(function() {
-                        this.showExportCSV ? this.output[0].exportCSVButton.disable() : {};
                         if(this.exportFormats){
                             if(this.exportAction == 'window'){
                                 this.output[0]["exportButton"].disable();
@@ -407,6 +416,8 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                                     this.output[0]["export" + format + "Button"].disable();
                                 }
                             }
+                        }else{
+                            this.showExportCSV ? this.output[0].exportCSVButton.disable() : {};
                         }
                         this.displayTotalResults();
                         this.selectOnMap && this.selectControl.deactivate();
@@ -414,7 +425,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                             ownerCt.collapse();
                     }, this);
                     var onPopulate = OpenLayers.Function.bind(function() {
-                        this.showExportCSV ? this.output[0].exportCSVButton.enable() : {};
                         if(this.exportFormats){
                             if(this.exportAction == 'window'){
                                 this.output[0]["exportButton"].enable();
@@ -424,6 +434,8 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                                     this.output[0]["export" + format + "Button"].enable();
                                 }
                             }
+                        }else{
+                            this.showExportCSV ? this.output[0].exportCSVButton.enable() : {};
                         }
                         this.displayTotalResults();
                         this.selectOnMap && this.selectControl.activate();
@@ -721,58 +733,70 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                 "&outputFormat="+ outputFormat;
         this.url =  url;
 
-        OpenLayers.Request.POST({
-            url: this.url,
-            data: this.xml,
-            callback: function(request) {
+        if(this.exportDoubleCheck){
+            OpenLayers.Request.POST({
+                url: this.url,
+                data: this.xml,
+                callback: function(request) {
 
-                if(request.status == 200){
-                
-                    try
-                      {
-                            var serverError = Ext.util.JSON.decode(request.responseText);
-                            Ext.Msg.show({
-                                title: this.invalidParameterValueErrorText,
-                                msg: "outputFormat: " + outputFormat + "</br></br>" +
-                                     failedExport + "</br></br>" +
-                                     "Error: " + serverError.exceptions[0].text,
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.MessageBox.ERROR
-                            });                        
-                      }
-                    catch(err)
-                      {
-                            //        
-                            //delete other iframes appended
-                            //
-                            if(document.getElementById("downloadIFrame")) {
-                                document.body.removeChild( document.getElementById("downloadIFrame") ); 
-                            }
-                            
-                            //
-                            //Create an hidden iframe for forced download
-                            //
-                            var elemIF = document.createElement("iframe"); 
-                            elemIF.setAttribute("id","downloadIFrame");
+                    if(request.status == 200){
+                    
+                        try
+                          {
+                                var serverError = Ext.util.JSON.decode(request.responseText);
+                                Ext.Msg.show({
+                                    title: this.invalidParameterValueErrorText,
+                                    msg: "outputFormat: " + outputFormat + "</br></br>" +
+                                         failedExport + "</br></br>" +
+                                         "Error: " + serverError.exceptions[0].text,
+                                    buttons: Ext.Msg.OK,
+                                    icon: Ext.MessageBox.ERROR
+                                });                        
+                          }
+                        catch(err)
+                          {
+                            // submit filter in a standard form (before check)
+                            this.doDownloadPost(this.url, this.xml);
+                          }
+                          
+                    }else{
+                        Ext.Msg.show({
+                            title: failedExport,
+                            msg: request.statusText,
+                            buttons: Ext.Msg.OK,
+                            icon: Ext.MessageBox.ERROR
+                        });
+                    }
+                },
+                scope: this
+            });   
+        }else{
+            // submit filter in a standard form to skip double check
+            this.doDownloadPost(this.url, this.xml);
+        }     
 
-                            var mUrl = this.url + "&filter=" + this.xml;
-                            elemIF.src = mUrl; 
-                            elemIF.style.display = "none"; 
-                            document.body.appendChild(elemIF); 
-                      }
-                      
-                }else{
-                    Ext.Msg.show({
-                        title: failedExport,
-                        msg: request.statusText,
-                        buttons: Ext.Msg.OK,
-                        icon: Ext.MessageBox.ERROR
-                    });
-                }
-            },
-            scope: this
-        });        
+    },
 
+    /** api: method[doDownloadPost]
+     */    
+    doDownloadPost: function(url, data){
+        //        
+        //delete other iframes appended
+        //
+        if(document.getElementById(this.downloadFormId)) {
+            document.body.removeChild(document.getElementById(this.downloadFormId)); 
+        }
+        // submit form with filter
+        var form = document.createElement("form");
+        form.setAttribute("id", this.downloadFormId);
+        form.setAttribute("method", "POST");
+        form.setAttribute("action", url);
+        var hiddenField = document.createElement("input");      
+        hiddenField.setAttribute("name", "filter");
+        hiddenField.setAttribute("value", data);
+        form.appendChild(hiddenField);
+        document.body.appendChild(form);
+        form.submit(); 
     }
     
 });
