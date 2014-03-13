@@ -721,57 +721,24 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                 "&outputFormat="+ outputFormat;
         this.url =  url;
 
-        OpenLayers.Request.POST({
-            url: this.url,
-            data: this.xml,
-            callback: function(request) {
-
-                if(request.status == 200){
-                
-                    try
-                      {
-                            var serverError = Ext.util.JSON.decode(request.responseText);
-                            Ext.Msg.show({
-                                title: this.invalidParameterValueErrorText,
-                                msg: "outputFormat: " + outputFormat + "</br></br>" +
-                                     failedExport + "</br></br>" +
-                                     "Error: " + serverError.exceptions[0].text,
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.MessageBox.ERROR
-                            });                        
-                      }
-                    catch(err)
-                      {
-                            //        
-                            //delete other iframes appended
-                            //
-                            if(document.getElementById("downloadIFrame")) {
-                                document.body.removeChild( document.getElementById("downloadIFrame") ); 
-                            }
-                            
-                            //
-                            //Create an hidden iframe for forced download
-                            //
-                            var elemIF = document.createElement("iframe"); 
-                            elemIF.setAttribute("id","downloadIFrame");
-
-                            var mUrl = this.url + "&filter=" + this.xml;
-                            elemIF.src = mUrl; 
-                            elemIF.style.display = "none"; 
-                            document.body.appendChild(elemIF); 
-                      }
-                      
-                }else{
-                    Ext.Msg.show({
-                        title: failedExport,
-                        msg: request.statusText,
-                        buttons: Ext.Msg.OK,
-                        icon: Ext.MessageBox.ERROR
-                    });
-                }
-            },
-            scope: this
-        });        
+        // submit filter in a standard form to skip double check
+        // TODO: could fail, then should show: 
+        //             Ext.Msg.show({
+        //                 title: failedExport,
+        //                 msg: request.statusText,
+        //                 buttons: Ext.Msg.OK,
+        //                 icon: Ext.MessageBox.ERROR
+        //             });
+        // how to do it?
+        var form = document.createElement("form");
+        form.setAttribute("method", "POST");
+        form.setAttribute("action", this.url);
+        var hiddenField = document.createElement("input");      
+        hiddenField.setAttribute("name", "filter");
+        hiddenField.setAttribute("value", this.xml);
+        form.appendChild(hiddenField);
+        document.body.appendChild(form);
+        form.submit(); 
 
     }
     
