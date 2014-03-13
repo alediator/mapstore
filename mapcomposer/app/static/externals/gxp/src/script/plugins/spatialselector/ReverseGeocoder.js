@@ -115,6 +115,9 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
     locateTpText: "Select a location on the map clicking on it",
 	radiusText: "Radius",
     radiusTpText: "Change the radius value on the selected location",
+	locationsGridTitleText: "Locations found",
+	locateText: "Locate on map",
+	locationFormTitleText: "Location form",
 	/** EoF i18n **/
 
 	/** api: config[selectStyle]
@@ -138,7 +141,8 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
         fontWeight: "bold",
         label: "${label}",
         labelOutlineColor: "white",
-        labelOutlineWidth: 5
+        labelOutlineWidth: 5,
+        labelYOffset: 20
     },
 
 	/** TODO: More configs to be documented **/
@@ -154,6 +158,8 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
     selectLayerName: "ReverseGeocoderLayer",
     centerText: "",
 	bufferZoneText: "",
+    addFeatureOnClick: true,
+    zoomFeatureOnClick: true,
 
 	/** api: method[constructor]
 	 * Init spatialSelectors .
@@ -218,15 +224,21 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
         });
 	    layout.items = [{
 			xtype: "fieldset",
-			title: "Location form",
+			title: this.locationFormTitleText,
 			items:[{
 	            xtype   : "button",
-	            text : "Locate on map",
+	            text : this.locateText,
 	            tooltip : this.locateTpText,
 				scope   : this,
-    			anchor: "100%",
+    			anchor: "60%",
+    			style:{
+    				"margin-left":"20%"
+    			},
 				handler : this.locate
 			},{
+		        xtype: 'tbspacer',
+		        height: 10
+		    },{
 	            xtype   : "numberfield",
 	            ref: "../radiusField",
 	            fieldLabel : this.radiusText,
@@ -239,7 +251,7 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
 			}]
 		},{
 			xtype: "fieldset",
-			title: "Location founds",
+			title: this.locationsGridTitleText,
 			items:[{
 	            xtype: "grid",
 	            layout: "fit",
@@ -324,8 +336,6 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
     	return output;
     },
 
-    addFeatureOnClick: true,
-
     rowclick: function(grid, rowIndex, columnIndex, e) {
     	var record = grid.store.getAt(rowIndex);
 		this.geometry = record.get("geometry");
@@ -339,6 +349,10 @@ gxp.plugins.spatialselector.ReverseGeocoder = Ext.extend(gxp.plugins.Tool, {
 		    }
 		    this.lastFeature = new OpenLayers.Feature.Vector(geometry, attributes);
 		    this.layer.addFeatures([this.lastFeature]);
+		}
+		if(this.zoomFeatureOnClick){
+			var dataExtent = geometry.getBounds();
+			this.target.mapPanel.map.zoomToExtent(dataExtent, closest=false);
 		}
     },
 

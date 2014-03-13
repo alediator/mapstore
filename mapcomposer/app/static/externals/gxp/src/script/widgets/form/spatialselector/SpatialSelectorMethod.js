@@ -267,7 +267,10 @@ gxp.widgets.form.spatialselector.SpatialSelectorMethod = Ext.extend(Ext.Containe
 			}
 			this.items.push({
 				xtype: 'fieldset',
+				ref: "geometryOperationFieldset",
 				title: this.geometryOperationText,
+                checkboxToggle: true,
+                collapsed : true,
 				items: [this.getGeometryOperationCombo()]
 			});
 			this.items.push(this.getDistanceFieldset());
@@ -293,8 +296,8 @@ gxp.widgets.form.spatialselector.SpatialSelectorMethod = Ext.extend(Ext.Containe
 	 */
 	getQueryFilter: function(){
 		var operation = null;
-		if(this.addGeometryOperation){
-			if(this.geometryOperation.isValid()){
+		if(this.addGeometryOperation && !this.geometryOperationFieldset.collapsed){
+			if(this.geometryOperation.isValid() ){
 				operation = this.geometryOperation.getValue();
 			}else{
                 Ext.Msg.show({
