@@ -174,6 +174,8 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
     * 
     */
 	resizerText: "Maps per page",
+
+    templatesCategoriesUrl: null,
 	
     /**
      * Method: initComponent
@@ -201,9 +203,7 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
             disabled: true,
             iconCls: 'map_add',
             tooltip: this.tooltipNewMap,
-            handler: function(){
-                this.grid.plugins.openMapComposer(this.grid.murl,userProfile,idMap,this.desc);
-            }
+            handler: this.onAddMap
         });
         
         //add expandAll buttons    
@@ -235,5 +235,67 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
 			options : [ 10, 20, 50, 100 ],
 			displayText: this.resizerText
 		}));
+    },
+
+    createMapText: "Create",
+    createMapTitleText: "Create a new map",
+    templateSeleccionErrorText: "Please select a template before create the map",
+    templateText: "Template",
+
+    onAddMap: function(){
+        var userProfile = '&auth=true';
+        var idMap = -1;
+        var me = this;
+        
+        var win = new Ext.Window({
+            title: this.createMapTitleText,
+            width: 415,
+            resizable: false,
+            items: [
+                new Ext.form.FormPanel({
+                    width: 400,
+                    ref: "formPanel",
+                    items: [{
+                        xtype: "msm_templatecombobox",
+                        ref: "templateCombo",
+                        name: "templateId",
+                        templatesCategoriesUrl: this.templatesCategoriesUrl,
+                        auth: this.auth
+                    }]
+                })
+            ],
+            bbar: new Ext.Toolbar({
+                items:[
+                    '->',
+                    {
+                        text: this.createMapText,
+                        iconCls: "map_add",
+                        scope: this,
+                        handler: function(){      
+                            var templateId = win.formPanel.templateCombo.getValue();
+
+                            if(templateId){
+                                win.hide(); 
+        
+                                this.grid.plugins.openMapComposer(this.grid.murl, userProfile, idMap, this.desc, templateId);
+                                
+                                win.destroy(); 
+                            }else{
+                                Ext.Msg.show({
+                                       title: "Error",
+                                       msg: me.templateSeleccionErrorText,
+                                       buttons: Ext.Msg.OK,
+                                       icon: Ext.MessageBox.ERROR
+                                    });   
+                            }
+                        }
+                    }
+                ]
+            })
+        });
+        
+        win.show();
+        
+        // this.grid.plugins.openMapComposer(this.grid.murl,userProfile,idMap,this.desc);
     }
 });

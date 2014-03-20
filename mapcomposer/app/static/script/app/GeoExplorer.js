@@ -138,9 +138,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     auth: false,
     
     fScreen: false,
-    
+
+    templateId: null,    
    
-    constructor: function(config, mapId, auth, fScreen) {
+    constructor: function(config, mapId, auth, fScreen, templateId) {
 	
 		if(mapId)
             this.mapId = mapId;
@@ -149,6 +150,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if(fScreen){
             this.fScreen = fScreen;
             this.auth = false;
+        }
+
+        // Save template key
+        if(templateId){
+            this.templateId = templateId;
         }
 		
 		this.mapItems = [];

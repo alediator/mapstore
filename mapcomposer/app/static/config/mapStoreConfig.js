@@ -29,7 +29,7 @@
 		}
    },
    
-   "advancedScaleOverlay": true,
+   "advancedScaleOverlay": false,
    "gsSources":{ 
 		"mapquest": {
 			"ptype": "gxp_mapquestsource"

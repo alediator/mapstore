@@ -109,6 +109,28 @@ MSMLogin = Ext.extend(Ext.FormPanel, {
      * 
      */
     defaultType:'textfield',
+     
+    /** private: method[constructor]
+     */
+    constructor: function(config) {
+        
+        this.addEvents(
+            /** api: event[login]
+             *  Fired when an user perform a login.
+             *
+             *  Listener arguments:
+             *  * userName - :class:`String` User name
+             */
+            "login",
+
+            /** api: event[logout]
+             *  Fired when an user makes a logout
+             */
+            "logout"
+        );
+        
+        MSMLogin.superclass.constructor.apply(this, arguments);
+    },
 
     initComponent : function() {
         
@@ -286,7 +308,8 @@ MSMLogin = Ext.extend(Ext.FormPanel, {
                 this.grid.getBottomToolbar().doRefresh();
                 this.grid.plugins.collapseAll();
                 this.grid.getBottomToolbar().openMapComposer.enable();
-					this.grid.openUserManagerButton.enable();
+				this.grid.openUserManagerButton.enable();
+                this.fireEvent("login", this.username);
             },
             failure: function(response, form, action) {
                 Ext.MessageBox.show({
@@ -323,6 +346,7 @@ MSMLogin = Ext.extend(Ext.FormPanel, {
         var userLabel = '';
         var handler = this.showLoginForm;
         this.applyLoginState('login', text, userLabel, handler, this);
+        this.fireEvent("logout");
     },
 
     /** private: method[showLogout]
