@@ -1569,27 +1569,27 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
 					}*/
                 },
                 failure: function (result) {
-                    // switch(result.status) {
-                    //     case 500:
-                    //     searchString = grid.defaultSearchString;
-                    //     grid.alertMsgServerError(grid.errorMsg_500);
-                    //     break;
-                    //     case 501:
-                    //     searchString = grid.defaultSearchString;                        
-                    //     grid.alertMsgServerError(grid.errorMsg_501);
-                    //     break;
-                    //     case 401: 
-                    //     searchString = grid.defaultSearchString;
-                    //     grid.alertMsgServerError(grid.errorMsg_404);
-                    //     break;
-                    //     case -1: 
-                    //     searchString = grid.defaultSearchString;
-                    //     grid.alertMsgServerError(grid.errorMsg_timeout);
-                    //     break;  
-                    //     default: 
-                    //     searchString = grid.defaultSearchString;                        
-                    //     grid.alertMsgServerError(grid.errorMsg_500);
-                    // }
+                    switch(result.status) {
+                        case 500:
+                        searchString = grid.defaultSearchString;
+                        grid.alertMsgServerError(grid.errorMsg_500);
+                        break;
+                        case 501:
+                        searchString = grid.defaultSearchString;                        
+                        grid.alertMsgServerError(grid.errorMsg_501);
+                        break;
+                        case 401: 
+                        searchString = grid.defaultSearchString;
+                        grid.alertMsgServerError(grid.errorMsg_404);
+                        break;
+                        case -1: 
+                        searchString = grid.defaultSearchString;
+                        grid.alertMsgServerError(grid.errorMsg_timeout);
+                        break;  
+                        default: 
+                        searchString = grid.defaultSearchString;                        
+                        grid.alertMsgServerError(grid.errorMsg_500);
+                    }
                 },
                 defaultHeaders: this.ajaxHeader
             }),
