@@ -58,9 +58,6 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
     templateSuccessTitleText: "OK",
     /** EoF i18n **/
 
-	// layout config
-	layout: 'form',
-
 	/** api: config[collapseModes]
 	 *  ``Array``
 	 *  With allowed collapse modes.
@@ -139,6 +136,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 		// Restore more data
 		try{
 			var values = templateData.data && !templateData.data.footer ? JSON.parse(templateData.data): templateData.data;
+			// form.loadRecord({
 			form.setValues({
 				// header
 				header: values.header.html,
@@ -372,9 +370,10 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 				title: this.sectionCSSTitleText,
 				height: 240,
 				items:[{
-					xtype: "htmleditor",
+					xtype: "textarea",
 					name: section + "CSS",
-					height: 190
+					height: 190,
+					width: 507
 				}]
 			},{
 				xtype: "fieldset",

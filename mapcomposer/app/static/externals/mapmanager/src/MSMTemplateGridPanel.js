@@ -54,12 +54,12 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
 	 */			
 	pageSize: 50,
 
-	// layout cinfig
-	layout:'fit',
-	defaults: {
-	    split: true,
-	    bodyStyle: 'padding:15px'
-	},
+	// layout config
+	// layout:'fit',
+	// defaults: {
+	//     split: true,
+	//     bodyStyle: 'padding:15px'
+	// },
 
 	// specific config
     categoryName: "TEMPLATE",
@@ -107,6 +107,7 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
     	// data store
 		var store = new Ext.data.JsonStore({
             autoDestroy: true,
+            autoLoad: true,
             root: 'results',
             totalProperty: 'totalCount',
             successProperty: 'success',
@@ -139,6 +140,28 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
             * 
             */
             scope: this,
+
+            enableCaching:false,
+            
+            /**
+             * Private: expandAll all rows of the grid
+             * 
+             */
+            expandAll : function() {
+                for (var i = 0; i < this.grid.store.getCount(); i++) {
+                    this.expandRow(i);
+                }
+            },
+            
+            /**
+             * Private: Collapse all rows of the grid
+             * 
+             */
+            collapseAll : function() {
+                for (var i = 0; i < this.grid.store.getCount(); i++) {
+                    this.collapseRow(i);
+                }
+            },
             listeners: {
                  scope: this,
                  expand: function(rowExpander, record, content){
@@ -238,10 +261,11 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
 			// the top bar of the template grid
 			tbar: [ searchField, searchButton, resetSearchButton],
             // bbar as paging
-            bbar: new Ext.PagingToolbar({
+            bbar: new MSMPagingToolbar({
 	            pageSize : this.pageSize,
 	            store : store,
 	            grid: this,
+                addMapControls: false,
 	            displayInfo: true,
 	            plugins: [
 	            	new Ext.ux.plugin.PagingToolbarResizer( {
@@ -337,6 +361,11 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
             
     getSearchUrl: function() {
         return this.searchUrl + '/' + this.categoryName + '/' + this.currentFilter;
+    },
+
+    // refresh grid 
+    refresh: function(){
+        this.getView().refresh();
     }
 });
 

@@ -175,7 +175,21 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
     */
 	resizerText: "Maps per page",
 
+    
+    /**
+    * Property: templatesCategoriesUrl
+    * {string} URL for the templates combo
+    * 
+    */
     templatesCategoriesUrl: null,
+    
+    /**
+    * Property: addMapControls
+    * {boolean} add create map and paging for maps grid.
+    * Default it's true
+    * 
+    */
+    addMapControls: true,
 	
     /**
      * Method: initComponent
@@ -195,16 +209,19 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
         
         MSMPagingToolbar.superclass.initComponent.call(this, arguments);
 
-        //add openMapComposer button
-        this.openMapComposer = this.addButton({
-            id: 'id_openMapComposer_button',
-            text: this.textNewMap,
-            scope: this,
-            disabled: true,
-            iconCls: 'map_add',
-            tooltip: this.tooltipNewMap,
-            handler: this.onAddMap
-        });
+        // only for maps grid
+        if(this.addMapControls){
+            //add openMapComposer button
+            this.openMapComposer = this.addButton({
+                id: 'id_openMapComposer_button',
+                text: this.textNewMap,
+                scope: this,
+                disabled: true,
+                iconCls: 'map_add',
+                tooltip: this.tooltipNewMap,
+                handler: this.onAddMap
+            });   
+        }
         
         //add expandAll buttons    
         this.expandAll = this.addButton({
@@ -231,10 +248,14 @@ MSMPagingToolbar = Ext.extend(Ext.PagingToolbar, {
         });
 		
 		this.plugins = (this.plugins || []);
-		this.plugins.push(new Ext.ux.plugin.PagingToolbarResizer( {
-			options : [ 10, 20, 50, 100 ],
-			displayText: this.resizerText
-		}));
+
+        // only for maps grid
+        if(this.addMapControls){
+    		this.plugins.push(new Ext.ux.plugin.PagingToolbarResizer( {
+    			options : [ 10, 20, 50, 100 ],
+    			displayText: this.resizerText
+    		}));
+        }
     },
 
     createMapText: "Create",

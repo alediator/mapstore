@@ -53,6 +53,7 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
 
 
 	layout:'border',
+	// layout:'column',
 	defaults: {
 	    split: true,
 	    bodyStyle: 'padding:15px'
@@ -90,10 +91,13 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
     	this.items.push({
     		xtype: "panel",
     		region:"center",
+			autoScroll: true,
     		items:[{
-				xtype: 'container',
+            	columnWidth: 0.50,
+				// xtype: 'container',
 				layout: 'fit',
 				items: [{
+					layout: 'fit',
 					xtype: 'msm_templategrid',
 					searchUrl: this.searchUrl,
 					ref: "../../templateGrid",
@@ -102,6 +106,7 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
 					pageSize: this.pageSize,
 	    			login: this.login,
 	    			geoBaseMapsUrl: this.url,
+			scope: this,
 		            listeners: {
 		            	'rowclick': this.templateClick, 
 			            scope: this
@@ -117,10 +122,13 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
     		ref: "east",
     		// split: true,
 	    	collapsible: true,
+			autoScroll: true,
     		// collapseMode: "mini",
     		items:[{
+            	// columnWidth: 0.50,
     			xtype: 'tabpanel',
 	    		activeTab: 0,
+				// autoScroll: true,
 	    		items:[{
 	    			xtype: "msm_templatepanel",
     				ref: "../../templatePanel",
@@ -130,8 +138,8 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
 	    			geoStoreBase: this.geoStoreBase,
 	    			listeners:{
 	    				success: function(){
-	    					this.templateGrid.searchTemplate();
-	    					this.templateGrid.getView().refresh();
+	    					// refresh the grid
+			                this.templateGrid.refresh();
 	    				},
 	    				scope: this
 	    			}
