@@ -352,6 +352,46 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
         }); 
     },
 
+    uploadImage: "Upload Image",
+    serviceBoxUrl: "/servicebox/",
+
+    imageUploader: function(){
+        var self = this;
+		
+        // create an upload file form                
+        var form = new gxp.ImageUploadPanel({
+            service: this.serviceBoxUrl // TODO
+        });
+		
+        // open a modal window
+        var win = new Ext.Window({
+            closable:true,
+            title: this.uploadImage,
+            border:false,
+            modal: true, 
+            bodyBorder: false,
+            resizable: false,
+            width: 500,
+            items: [ form ]
+        });		
+		
+        form.on("uploadcomplete", function addImageURL(caller, response){
+            // ////////////////////////////////////////////
+			// The code to access the uploaded file
+            // ////////////////////////////////////////////
+			var code = response.code;
+            var nfname = response.nfname;
+            var url = this.serviceBoxUrl + 'FileDownloader?code=' + code + '&filename=' + nfname;
+
+            console.log(url);
+
+            // destroy the window
+            win.destroy();
+        }, this);
+        // show window
+        win.show();
+    },
+
     getTemplateSectionEditor: function(section){
     	var title = section == "header" ? this.headerTitleText: section == "footer" ? this.footerTitleText: section;
     	var sectionContentTitleText = String.format(this.sectionContentTitleText, title);
@@ -363,6 +403,11 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 				title: sectionContentTitleText,
 				height: 240,
 				items:[{
+					xtype: "button",
+					text: this.uploadImage,
+					handler: this.imageUploader, 
+					scope: this
+				},{
 					xtype: "htmleditor",
 					name: section,
 					height: 190
