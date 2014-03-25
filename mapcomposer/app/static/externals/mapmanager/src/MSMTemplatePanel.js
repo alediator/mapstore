@@ -355,39 +355,45 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 
     imageUploader: function(){
         var self = this;
-		
-        // create an upload file form                
-        var form = new gxp.ImageUploadPanel({
-            service: this.serviceBoxUrl // TODO
+
+        var win = new Ext.ux.fileBrowser({
+        	actionURL: "/admin/operation/extJSFileBrowserManager"
         });
-		
-        // open a modal window
-        var win = new Ext.Window({
-            closable:true,
-            title: this.uploadImage,
-            border:false,
-            modal: true, 
-            bodyBorder: false,
-            resizable: false,
-            width: 500,
-            items: [ form ]
-        });		
-		
-        form.on("uploadcomplete", function addImageURL(caller, response){
-            // ////////////////////////////////////////////
-			// The code to access the uploaded file
-            // ////////////////////////////////////////////
-			var code = response.code;
-            var nfname = response.nfname;
-            var url = this.serviceBoxUrl + 'FileDownloader?code=' + code + '&filename=' + nfname;
 
-            console.log(url);
-
-            // destroy the window
-            win.destroy();
-        }, this);
-        // show window
         win.show();
+		
+   //      // create an upload file form                
+   //      var form = new gxp.ImageUploadPanel({
+   //          service: this.serviceBoxUrl // TODO
+   //      });
+		
+   //      // open a modal window
+   //      var win = new Ext.Window({
+   //          closable:true,
+   //          title: this.uploadImage,
+   //          border:false,
+   //          modal: true, 
+   //          bodyBorder: false,
+   //          resizable: false,
+   //          width: 500,
+   //          items: [ form ]
+   //      });		
+		
+   //      form.on("uploadcomplete", function addImageURL(caller, response){
+   //          // ////////////////////////////////////////////
+			// // The code to access the uploaded file
+   //          // ////////////////////////////////////////////
+			// var code = response.code;
+   //          var nfname = response.nfname;
+   //          var url = this.serviceBoxUrl + 'FileDownloader?code=' + code + '&filename=' + nfname;
+
+   //          console.log(url);
+
+   //          // destroy the window
+   //          win.destroy();
+   //      }, this);
+   //      // show window
+   //      win.show();
     },
 
     getTemplateSectionEditor: function(section){
