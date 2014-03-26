@@ -431,6 +431,7 @@
 				  
 				  try{
 					  serverConfig = Ext.util.JSON.decode(response.responseText);
+					  proxy = mapStoreDebug === true ? "/proxy/?url=" : serverConfig.proxy;
 				  }catch(e){
 					  Ext.Msg.show({
 							title: "Startup",
@@ -442,8 +443,13 @@
 
 				  // load template config
 				  if(templateId){
+				  		// include proxy and/or geoStoreBase
+				  		var templateLoadUrl = (serverConfig && serverConfig.geoStoreBase ? serverConfig.geoStoreBase : ('http://' + window.location.host + '/geostore/rest/')) + "data/" + templateId;
+				  		if(proxy){
+				  			templateLoadUrl = proxy + templateLoadUrl;
+				  		}
 						Ext.Ajax.request({
-							url: (serverConfig && serverConfig.geoStoreBase ? serverConfig.geoStoreBase : ('http://' + window.location.host + '/geostore/rest/')) + "data/" + templateId,
+							url: templateLoadUrl,
 							method: 'GET',
 							success: function(response, opts){          
 							  
