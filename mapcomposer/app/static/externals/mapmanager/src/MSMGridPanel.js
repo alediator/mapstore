@@ -981,7 +981,9 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
                                     var userAuth = grid.store.proxy.getConnection().defaultHeaders;
                                     if(userAuth && userProfile == '&auth=true'){
                                         var mapIframe = document.getElementById(p.iframeId);
-                                        if (mapIframe.contentWindow.app){
+                                        if (mapIframe
+                                            && mapIframe.contentWindow
+                                            && mapIframe.contentWindow.app){
                                             mapIframe.contentWindow.app.setAuthHeaders(userAuth.Authorization);
                                             clearTimeout(timer);
                                         }
@@ -2004,7 +2006,8 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
             login: this.login,
             searchUrl: this.geoSearchCategoriesUrl,
             url: this.geoBaseMapsUrl,
-            geoStoreBase: this.config.geoStoreBase
+            geoStoreBase: this.config.geoStoreBase,
+            opensdi2ManagerUrl: this.config.opensdi2ManagerUrl
         });
 
         if(this.adminPanelsTargetTab){
