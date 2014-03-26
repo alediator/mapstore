@@ -365,7 +365,7 @@ MSMTemplateGridPanel = Ext.extend(Ext.grid.GridPanel, {
 
     // refresh grid 
     refresh: function(){
-        this.getView().refresh();
+        this.store.load();
     }
 });
 
