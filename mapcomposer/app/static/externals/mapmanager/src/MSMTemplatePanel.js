@@ -80,6 +80,12 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 
 	// base url for update
 	geoStoreBase: null,
+    
+    /** api: config[actionURL]
+     *  ``String``
+     *  URL to the extJSbrowser of OpenSDI-Manager2
+     */
+    actionURL: "/opensdi2-manager/fileManager/extJSbrowser",
 
     /**
     * Constructor: initComponent 
@@ -361,9 +367,11 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 				title: sectionContentTitleText,
 				height: 240,
 				items:[{
-					xtype: "htmleditor",
+					xtype: "extendedhtmleditor",
 					name: section,
-					height: 190
+					actionURL: this.actionURL,
+					height: 190,
+					width: 530
 				}]
 			},{
 				xtype: "fieldset",
@@ -373,7 +381,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 					xtype: "textarea",
 					name: section + "CSS",
 					height: 190,
-					width: 507
+					width: 530
 				}]
 			},{
 				xtype: "fieldset",
