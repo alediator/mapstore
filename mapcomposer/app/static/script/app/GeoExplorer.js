@@ -131,6 +131,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      */
     mapPanel: null,
     
+    /** api: config[stateWhiteList]
+     *  ``Array`` with list of elements to be saved on this.getState. 
+     *   If this property is null, old method is used (blackList) to get the state.
+     *   Default is `["sources", "map", "CSWCatalogues"]`.
+     */
+    stateWhiteList: ["sources", "map", "CSWCatalogues"], 
+    
     toggleGroup: "toolGroup",
     
     mapId: -1,
@@ -139,7 +146,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     
     fScreen: false,
 
-    templateId: null,    
+    templateId: null,   
    
     constructor: function(config, mapId, auth, fScreen, templateId) {
 	
@@ -1304,37 +1311,50 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
     
     /** private: method[getState]
-     *  :returns: ``Òbject`` the state of the viewer
+     *  :returns: ``Object`` the state of the viewer
      */
     getState: function() {
-        var state = GeoExplorer.superclass.getState.apply(this, arguments);
-        
-		// ///////////////////////////////////////////
-		// Don't persist unnecessary components. 
-		// Only the map details are mandatory, other
-        // elements are merged from the default 
-		// configuration.
-		// ///////////////////////////////////////////
+
+        // use white list to save current state
+        var currentState = {};
+        if(this.stateWhiteList){
+            for (var i = 0; i < this.stateWhiteList.length; i++){
+                var key = this.stateWhiteList[i];
+                currentState[key] = this[key];
+            }
+        }else{
+            // use black list
+            var state = GeoExplorer.superclass.getState.apply(this, arguments);
+
+            // ///////////////////////////////////////////
+            // Don't persist unnecessary components. 
+            // Only the map details are mandatory, other
+            // elements are merged from the default 
+            // configuration.
+            // ///////////////////////////////////////////
+            
+            delete state.tools;
+            delete state.customTools;
+            delete state.viewerTools;
+            delete state.georeferences;
+            delete state.customPanels;
+            delete state.portalConfig;
+            delete state.disableLayerChooser;
+            
+            delete state.modified;
+            delete state.proxy;
+            delete state.geoStoreBaseURL;
+            delete state.renderToTab;
+            delete state.advancedScaleOverlay;
+            delete state.about;
+            delete state.defaultLanguage;
+            delete state.scaleOverlayUnits;
+            delete state.actionToolScale;
+
+            Ext.apply(currentState, state);
+        }
 		
-        delete state.tools;
-		delete state.customTools;
-		delete state.viewerTools;
-		delete state.georeferences;
-		delete state.customPanels;
-		delete state.portalConfig;
-		delete state.disableLayerChooser;
-		
-		delete state.modified;
-		delete state.proxy;
-		delete state.geoStoreBaseURL;
-		delete state.renderToTab;
-		delete state.advancedScaleOverlay;
-		delete state.about;
-		delete state.defaultLanguage;
-		delete state.scaleOverlayUnits;
-		delete state.actionToolScale;
-		
-        return state;
+        return currentState;
     }
 });
 
