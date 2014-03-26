@@ -663,7 +663,7 @@ Ext.extend(Ext.ux.fileBrowser, Ext.Window, {
 	
 	actionDo : function(config){
 		var connection = new Ext.data.Connection().request({
-			url: this.actionURL,
+			url: config.url ? config.url : this.actionURL,
 			method: "POST",
 			params: Ext.isDefined(config.params)?config.params:{},
 			form : Ext.isDefined(config.form)?config.form:false,
@@ -832,13 +832,15 @@ Ext.extend(Ext.ux.fileBrowser, Ext.Window, {
 	
 	actionFilesDownload : function(){
 		this.filePanel.getSelectionModel().each(function(record){
-			window.open(this.actionURL+'?action=file_download&folder=' + this.fileStore.baseParams.folder + '&file=' + record.get('name'));
+			window.open(this.actionURL+'/../download?folder=' + this.fileStore.baseParams.folder + '&file=' + record.get('name'));
 		},this);
 		this.filePanel.getSelectionModel().clearSelections();
 	},
 	
 	actionFileUpload :  function(){
 		this.actionDo({
+			// url: this.actionURL + "?action=file_upload&folder="+this.fileStore.baseParams.folder,
+			url: this.actionURL + "/../upload?",
 			form: this.fileForm,
 			isUpload: true,
 			params: {
