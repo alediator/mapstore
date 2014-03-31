@@ -98,6 +98,8 @@ Ext.ux.ImagePicker = Ext.extend(Ext.FormPanel, {
     initComponent: function() {
         var self = this;
 
+        var uploadURL = this.getUploadUrl();
+
         // clean available images and index
         this.availableImages = [];
         this.activeIndex = -1;
@@ -131,7 +133,7 @@ Ext.ux.ImagePicker = Ext.extend(Ext.FormPanel, {
             title: this.imageUploadText,
             items: [{
                 xtype: "pluploadpanel",
-                url: this.actionURL + "/../upload",
+                url: uploadURL,
                 multipart: true,
                 listeners:{
                     fileUploaded: this.onFileUpload,
@@ -174,11 +176,14 @@ Ext.ux.ImagePicker = Ext.extend(Ext.FormPanel, {
 
         // File store
         this.fileStore = new Ext.data.Store({
-            url: this.actionURL,
             baseParams: {
                 action : "get_filelist"
             },
-            method: 'POST',
+            proxy: new Ext.data.HttpProxy({
+                url: this.actionURL,
+                method : 'POST',
+                disableCaching: true
+            }),
             autoLoad: false,
             sortInfo: {field: 'name', direction: 'ASC'},
             reader: new Ext.data.JsonReader({
@@ -196,6 +201,27 @@ Ext.ux.ImagePicker = Ext.extend(Ext.FormPanel, {
         this.fileStore.load();
 
         Ext.ux.ImagePicker.superclass.initComponent.call(this);
+
+    },
+    
+    /** private: method[getUploadUrl]
+     */
+    getUploadUrl: function(){
+        // Include proxy host for plupload (not ExtJS proxy supported)
+        var uploadURL = this.actionURL + "/../upload";
+        var checkUrl = this.actionURL;
+        var index0 = checkUrl.indexOf("://");
+        if(index0 > -1){
+            checkUrl = checkUrl.split("://")[1];
+            checkUrl = checkUrl.substring(0, checkUrl.indexOf("/"));
+            var this_host = document.URL.split("://")[1];
+            this_host = this_host.substring(0, this_host.indexOf("/"));
+            if(checkUrl != this_host){
+                uploadURL =  OpenLayers.ProxyHost + this.actionURL + "/../upload"; 
+            }
+        }
+
+        return uploadURL;
 
     },
 

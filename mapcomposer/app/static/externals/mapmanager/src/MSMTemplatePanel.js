@@ -102,7 +102,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 				name: "templateName"
 			},{
 				xtype: "button",
-				text: "Reset",
+				text: "New",
 				handler: this.onReset, 
 				scope: this
 			},{
@@ -146,7 +146,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 			form.setValues({
 				// header
 				header: values.header.html,
-				headerCSS: values.header.css,
+				headerCSS: this.cleanupStyle(values.header.css),
 				headerBorder: values.header.container.border ? "on" : "off",
 				headerChk: values.header.container.header ? "on" : "off",
 				headerCollapsible: values.header.container.collapsible ? "on" : "off",
@@ -159,7 +159,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 				headerHeight: values.header.container.height,
 				// footer
 				footer: values.footer.html,
-				footerCSS: values.footer.css,
+				footerCSS: this.cleanupStyle(values.footer.css),
 				footerBorder: values.footer.container.border ? "on" : "off",
 				footerChk: values.footer.container.footer ? "on" : "off",
 				footerCollapsible: values.footer.container.collapsible ? "on" : "off",
@@ -176,6 +176,19 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 		}
     },
 
+	// remove <style> and </style> tags
+    cleanupStyle: function(cssText){
+    	if(cssText){
+    		if(cssText.indexOf("<style>") > -1){
+    			cssText = cssText.replace("<style>", "");
+    		}
+    		if(cssText.indexOf("</style>") > -1){
+    			cssText = cssText.replace("</style>", "");
+    		}
+    	}
+    	return cssText;
+    },
+
     onReset: function(){
     	// reset form content
     	this.formContainer.getForm().reset();
@@ -186,7 +199,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
     	var templateConfig = {
     		"header": {
 			   "html": values.header,
-			   "css": values.headerCSS,
+			   "css": this.getStyle(values.headerCSS),
 			   "container": {
 					"border": values.headerBorder && values.headerBorder == "on",
 					"header": values.headerChk && values.headerChk == "on",
@@ -202,7 +215,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 			},   
     		"footer": {
 			   "html": values.footer,
-			   "css": values.footerCSS,
+			   "css": this.getStyle(values.footerCSS),
 			   "container": {
 					"border": values.footerBorder && values.footerBorder == "on",
 					"header": values.footerChk && values.footerChk == "on",
@@ -224,6 +237,19 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
         }else{
 			this.doUpdate(values.id, blob);
         }
+    },
+
+	// include <style> and </style> tags
+    getStyle: function(cssText){
+    	if(cssText){
+    		if(cssText.indexOf("<style>") < 0){
+    			cssText = "<style>" + cssText;
+    		}
+    		if(cssText.indexOf("</style>") < 0){
+    			cssText += "</style>";
+    		}
+    	}
+    	return cssText;
     },
 
     // operation to save new templates

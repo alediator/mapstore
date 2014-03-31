@@ -30,11 +30,11 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
 
 	title: 'Template manager',
     
-    /** api: config[opensdi2ManagerUrl]
+    /** api: config[adminUrl]
      *  ``String``
      *  URL of OpenSDI-Manager2
      */
-    opensdi2ManagerUrl: "/opensdi2-manager/",
+    adminUrl: "/opensdi2-manager/",
             
     /**
 	 * Property: pageSize
@@ -142,7 +142,7 @@ MSMTemplateManager = Ext.extend(Ext.form.FormPanel, {
 	    			formContainer: this,
 	    			login: this.login,
 	    			geoStoreBase: this.geoStoreBase,
-	    			actionURL: this.opensdi2ManagerUrl + "fileManager/extJSbrowser",
+	    			actionURL: this.adminUrl + "fileManager/extJSbrowser",
 	    			listeners:{
 	    				success: function(){
 	    					// refresh the grid

@@ -2007,7 +2007,7 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
             searchUrl: this.geoSearchCategoriesUrl,
             url: this.geoBaseMapsUrl,
             geoStoreBase: this.config.geoStoreBase,
-            opensdi2ManagerUrl: this.config.opensdi2ManagerUrl
+            adminUrl: this.config.adminUrl
         });
 
         if(this.adminPanelsTargetTab){
