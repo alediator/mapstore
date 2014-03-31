@@ -270,6 +270,21 @@
 					layout: 'fit',
 					border: false
 			};
+
+			// in header and footer, we need numbers, not strings
+			var parseKnowIntegers = function(section){
+				var knownInteger = {'height':true, 'maxHeight': true, 'minWidth':true};
+				for(var key in knownInteger){
+					if(section[key]){
+						try{
+							section[key] = parseInt(section[key]);	
+						}catch (e){
+							// unknown parameter value
+						}
+					}	
+				}
+				return section;
+			}
 			
 			if(header || footer){
 				var north = {
@@ -279,8 +294,8 @@
 				};
 			
 				if(header){
-					north = Ext.applyIf(north, (header.container ? header.container : {}));
-					north.html = (header.css || '') + header.html || '';
+					north = Ext.applyIf(north, (header.container ? parseKnowIntegers(header.container) : {}));
+					north.html = (header.css || '') + (header.html || '');
 				}
 				
 			    var south = {
@@ -290,8 +305,8 @@
 				};
 				
 				if(footer){
-					south = Ext.applyIf(south, (footer.container ? footer.container : {}));
-					south.html = (footer.css || '') + footer.html || '';
+					south = Ext.applyIf(south, (footer.container ? parseKnowIntegers(footer.container) : {}));
+					south.html = (footer.css || '') + (footer.html || '');
 				}
 				
 				viewport.items = [{
