@@ -443,6 +443,13 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
     // defaultSearchString: '',
 
     /**
+     * Property: extraAttributes
+     * {string} Extra attributes for the resume
+     * 
+     */ 
+    extraAttributes: "templateId",
+
+    /**
     * Constructor: initComponent 
     * Initializes the component
     * 
@@ -1686,7 +1693,7 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
         MSMGridPanel.superclass.initComponent.call(this, arguments);
     },
     
-    /**
+   /**
     * getUrl
     * 
     * searchString - {string} string to search through the resources of geostore
@@ -1694,6 +1701,9 @@ MSMGridPanel = Ext.extend(Ext.grid.GridPanel, {
     */
     getUrl : function(srcStr) {
         var r = this.geoSearchUrl +  '*' + srcStr.replace(/\s+/g,"*") + '*';
+        if(this.extraAttributes){
+            r += "/" + this.extraAttributes
+        }
         return r;
     },
     
