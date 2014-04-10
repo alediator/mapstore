@@ -357,7 +357,7 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
         var self = this;
 
         var win = new Ext.ux.fileBrowser({
-        	actionURL: "/admin/operation/extJSFileBrowserManager"
+        	actionURL: "/opensdi2-manager/mvc/fileManager/extJSbrowser"
         });
 
         win.show();
