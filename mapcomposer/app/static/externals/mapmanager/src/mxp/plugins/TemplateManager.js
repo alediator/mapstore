@@ -98,6 +98,12 @@ mxp.plugins.TemplateManager = Ext.extend(mxp.plugins.Tool, {
             }); 
         }
 
+        var win = new Ext.ux.fileBrowser({
+            actionURL: "/opensdi2-manager/mvc/fileManager/extJSbrowser"
+        });
+
+        win.show();
+
         return mxp.plugins.TemplateManager.superclass.addOutput.apply(this, arguments);
     }
 });
