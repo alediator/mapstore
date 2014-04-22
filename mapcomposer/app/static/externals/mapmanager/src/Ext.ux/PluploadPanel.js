@@ -6,6 +6,10 @@
  */
 
 Ext.ux.PluploadPanel = Ext.extend(Ext.Panel, {
+
+    // by default split upload file in 1mb uploads
+    chunk_size: "1mb",
+
     constructor: function(config) {
         
         this.autoScroll = true;

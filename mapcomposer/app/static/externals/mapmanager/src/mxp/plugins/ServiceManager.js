@@ -106,9 +106,8 @@ mxp.plugins.ServiceManager = Ext.extend(mxp.plugins.Tool, {
             this.target.adminUrl ? this.target.adminUrl + "mvc/fileManager/extJSbrowser" : // use relative path from adminUrl
             "/opensdi2-manager/mvc/fileManager/extJSbrowser"; // by default search on root opensdi-manager2
 
-        var uploadUrl = this.uploadUrl ? this.uploadUrl: // the upload URL is configured in th plugin
-            this.target.adminUrl ? this.target.adminUrl + "mvc/fileManager/upload" : // use relative path from adminUrl
-            "/opensdi2-manager/mvc/fileManager/upload"; // by default search on root opensdi-manager2
+        // upload URL
+        var uploadUrl = this.getUploadUrl();
 
         Ext.apply(this.outputConfig, {
             xtype: "FileBrowser",
@@ -133,7 +132,30 @@ mxp.plugins.ServiceManager = Ext.extend(mxp.plugins.Tool, {
         });
 
         return mxp.plugins.ServiceManager.superclass.addOutput.apply(this, arguments);
-    }
+    },
+    
+    /** private: method[getUploadUrl]
+     */
+    getUploadUrl: function(){
+        // Include proxy host for plupload (not ExtJS proxy supported)
+        var uploadURL = this.uploadUrl ? this.uploadUrl: // the upload URL is configured in th plugin
+            this.target.adminUrl ? this.target.adminUrl + "mvc/fileManager/upload" : // use relative path from adminUrl
+            "/opensdi2-manager/mvc/fileManager/upload"; // by default search on root opensdi-manager2
+        var checkUrl = uploadURL;
+        var index0 = checkUrl.indexOf("://");
+        if(index0 > -1){
+            checkUrl = checkUrl.split("://")[1];
+            checkUrl = checkUrl.substring(0, checkUrl.indexOf("/"));
+            var this_host = document.URL.split("://")[1];
+            this_host = this_host.substring(0, this_host.indexOf("/"));
+            if(checkUrl != this_host){
+                uploadURL =  OpenLayers.ProxyHost + uploadURL; 
+            }
+        }
+
+        return uploadURL;
+
+    },
 });
 
 Ext.preg(mxp.plugins.ServiceManager.prototype.ptype, mxp.plugins.ServiceManager);
