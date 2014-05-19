@@ -61,7 +61,22 @@ mxp.plugins.CategoriesInitializer = Ext.extend(mxp.plugins.Tool, {
     /** api: config[neededCategories] 
      *  ``Array`` Name of categories to be initialized in an array
      */
-    neededCategories: ["TEMPLATES", "MAPS"],
+    neededCategories: ["TEMPLATE", "MAP"],
+
+    /** api: config[checkDefaultTemplate] 
+     *  ``Boolean`` Flag to initialize templates in `defaultTemplates`
+     */
+    checkDefaultTemplate: true,
+
+    /** api: config[defaultTemplates] 
+     *  ``Array`` Templates to be created at startup if not found in an array
+     */
+    defaultTemplates:[{ 
+        name: "Default", 
+        owner: "admin",
+        description: "Default empty template",
+        blob: "{}"
+    }],
 
     /** private: method[init]
      */
@@ -91,6 +106,25 @@ mxp.plugins.CategoriesInitializer = Ext.extend(mxp.plugins.Tool, {
 
         // check categories
         this.checkAndCreateCategories(this.neededCategories);
+
+        // templates
+        if(this.checkDefaultTemplate){
+            this.templates = new GeoStore.Templates({
+                authorization: auth,
+                url: this.target.initialConfig.geoStoreBase + 'resources'
+                }).failure( function(response){
+                    if(!me.silentErrors){  
+                        // not found!!
+                        Ext.Msg.show({
+                           title: me.geostoreInitializationTitleText,
+                           msg: me.geostoreInitializationText + ": " + response.statusText + "(status " + response.status + "):  " + response.responseText,
+                           buttons: Ext.Msg.OK,
+                           icon: Ext.MessageBox.ERROR
+                        });
+                    }
+            });
+        }
+
     },
 
     /** api: method[checkAndCreateCategories]
@@ -121,10 +155,49 @@ mxp.plugins.CategoriesInitializer = Ext.extend(mxp.plugins.Tool, {
      *  Create categories with the names in this.categoryNames
      */
     createCategories: function(categoryNames){
+        var me = this;
+        var pending = categoryNames.length;
         for(var i = 0; i < categoryNames.length; i++){
             this.categories.create({
                 name: categoryNames[i]
             }, function(responseText){
+                // creation succeeded
+                if(me.checkDefaultTemplate && --pending == 0){
+                    // check templates
+                    me.checkAndCreateDefaultTemplates(me.defaultTemplates);
+                }
+            });
+        }
+    },
+
+    /** api: method[checkAndCreateDefaultTemplates]
+     *  Create templates with the names in templatesConfig identified by name.
+     */
+    checkAndCreateDefaultTemplates: function(templatesConfig){
+        var me = this;
+        this.templates.find(function(templates){
+            for(var i = 0; i < templates.length; i++){
+                var found = false;
+                for(var j = 0; j < templatesConfig.length; j++){
+                    if(templates[i].name == templatesConfig[j].name){
+                        found = true;
+                        break;
+                    }
+                }
+                if(found){
+                    templatesConfig.remove(templatesConfig[j]);
+                }
+            }
+            me.createTemplates(templatesConfig);
+        });
+    },
+
+    /** api: method[createTemplates]
+     *  Create templates in toAddTemplates array
+     */
+    createTemplates: function(toAddTemplates){
+        for(var i = 0; i < toAddTemplates.length; i++){
+            this.templates.create(toAddTemplates[i], function(responseText){
                 // creation succeeded
             });
         }

@@ -45,6 +45,9 @@
     templatesCategoriesUrl: 'extjs/search/category/TEMPLATE',
     auth: null,
 
+    // select  by default by name
+    defaultSelection: "Default",
+
     initComponent: function(){
     	this.store = {
 	        xtype: "jsonstore",
@@ -75,6 +78,7 @@
 	        listeners:{
 	        	load: function(store){
 	        		this.fireEvent("storeload", store, this);
+	        		this.loadDefaultTemplate(store);
 	        	},
 	        	scope: this
 	        }
@@ -86,6 +90,21 @@
         };
 		
         MSMTemplateComboBox.superclass.initComponent.call(this, arguments);
+	},
+
+	/**
+	 * private:[loadDefaultTemplate]
+	 * 
+	 * Select `this.defaultSelection` if it's configurated
+	 **/
+	loadDefaultTemplate: function(store){
+		if(this.defaultSelection){
+			store.each(function(record){
+				if(this.defaultSelection == record.json.name){
+					this.setValue(record.get("id"));
+				}
+			}, this);	
+		}
 	}
 });
 

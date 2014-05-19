@@ -624,6 +624,8 @@
 				data.id = json.Resource.id;
 				data.creation = json.Resource.creation;		
 				return data;			
+			} else if(json.results && json.totalCount){
+				return json.results;
 			} else {
 				this.onFailure_('cannot parse response');
 			}
@@ -902,7 +904,13 @@
 				data.id = json.Resource.id;
 				data.creation = json.Resource.creation;		
 				data.lastUpdate = json.Resource.lastUpdate;	
-				return data;			
+				return data;				
+			} else if(json.results && json.totalCount){
+				return json.results;			
+			} else if(json.ResourceList){
+				return json.ResourceList.Resource ? json.ResourceList.Resource: [];
+			} else if(json.ResourceList == ""){
+				return [];
 			} else {
 				this.onFailure_('cannot parse response');
 			}

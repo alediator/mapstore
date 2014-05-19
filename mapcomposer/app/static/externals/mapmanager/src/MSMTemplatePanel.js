@@ -147,35 +147,46 @@ MSMTemplatePanel = Ext.extend(Ext.Panel, {
 		// Restore more data
 		try{
 			var values = templateData.data && !templateData.data.footer ? JSON.parse(templateData.data): templateData.data;
-			// form.loadRecord({
-			form.setValues({
-				// header
-				header: values.header.html,
-				headerCSS: this.cleanupStyle(values.header.css),
-				headerBorder: values.header.container.border ? "on" : "off",
-				headerChk: values.header.container.header ? "on" : "off",
-				headerCollapsible: values.header.container.collapsible ? "on" : "off",
-				headerCollapseMode: values.header.container.collapseMode,
-				headerHideCollapse: values.header.container.hideCollapseTool ? "on" : "off",
-				headerSplit: values.header.container.split ? "on" : "off",
-				headerAnimeCollapse: values.header.container.animCollapse ? "on" : "off",
-				headerMinWidth: values.header.container.minWidth,
-				headerMaxHeight: values.header.container.maxHeight,
-				headerHeight: values.header.container.height,
-				// footer
-				footer: values.footer.html,
-				footerCSS: this.cleanupStyle(values.footer.css),
-				footerBorder: values.footer.container.border ? "on" : "off",
-				footerChk: values.footer.container.footer ? "on" : "off",
-				footerCollapsible: values.footer.container.collapsible ? "on" : "off",
-				footerCollapseMode: values.footer.container.collapseMode,
-				footerHideCollapse: values.footer.container.hideCollapseTool ? "on" : "off",
-				footerSplit: values.footer.container.split ? "on" : "off",
-				footerAnimeCollapse: values.footer.container.animCollapse ? "on" : "off",
-				footerMinWidth: values.footer.container.minWidth,
-				footerMaxHeight: values.footer.container.maxHeight,
-				footerHeight: values.footer.container.height
-			});
+			var formValues = {};
+			if(values){
+				if(values.header){
+					var container = values.header.container ? values.header.container : {};
+					Ext.apply(formValues,{
+						// header
+						header: values.header.html,
+						headerCSS: this.cleanupStyle(values.header.css),
+						headerBorder: container.border ? "on" : "off",
+						headerChk: container.header ? "on" : "off",
+						headerCollapsible: container.collapsible ? "on" : "off",
+						headerCollapseMode: container.collapseMode,
+						headerHideCollapse: container.hideCollapseTool ? "on" : "off",
+						headerSplit: container.split ? "on" : "off",
+						headerAnimeCollapse: container.animCollapse ? "on" : "off",
+						headerMinWidth: container.minWidth,
+						headerMaxHeight: container.maxHeight,
+						headerHeight: container.height,
+					});
+				}
+				if(values.footer){
+					var container = values.footer.container ? values.footer.container : {};
+					Ext.apply(formValues,{
+						// footer
+						footer: values.footer.html,
+						footerCSS: this.cleanupStyle(values.footer.css),
+						footerBorder: container.border ? "on" : "off",
+						footerChk: container.footer ? "on" : "off",
+						footerCollapsible: container.collapsible ? "on" : "off",
+						footerCollapseMode: container.collapseMode,
+						footerHideCollapse: container.hideCollapseTool ? "on" : "off",
+						footerSplit: container.split ? "on" : "off",
+						footerAnimeCollapse: container.animCollapse ? "on" : "off",
+						footerMinWidth: container.minWidth,
+						footerMaxHeight: container.maxHeight,
+						footerHeight: container.height
+					});
+				}
+			}
+			form.setValues(formValues);
 		}catch (e){
 			console.error("Error parsing template data");
 		}
