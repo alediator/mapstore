@@ -19,18 +19,14 @@
  */
 package it.geosolutions.geobatch.mariss.ingestion.product;
 
-import java.io.BufferedOutputStream;
+import it.geosolutions.geobatch.mariss.ingestion.csv.utils.DecompressUtils;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
@@ -38,9 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import net.opengis.gml.DirectPositionType;
 
-import org.apache.commons.io.FileUtils;
 import org.geotools.data.DataStore;
-import org.geotools.graph.util.ZipUtil;
 import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,8 +93,9 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 			String userName, String serviceName) {
 		super(dataStore, typeName, userName, serviceName);
 	}
-	
-	public DataPackageIngestionProcessor(DataStore dataStore, String typeName, String userName, String serviceName, String targetTifFolder){
+
+	public DataPackageIngestionProcessor(DataStore dataStore, String typeName,
+			String userName, String serviceName, String targetTifFolder) {
 		super(dataStore, typeName, userName, serviceName, targetTifFolder);
 	}
 
@@ -111,12 +106,14 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 	 * @return
 	 * @throws IOException
 	 */
-	public String processZip(String zipFile) throws IOException {
+	public String processCompressedFile(String compressedFile)
+			throws IOException {
 		String msg = null;
 
 		String zipPath = workingDir
-				+ zipFile.substring(zipFile.lastIndexOf(File.separator));
-		unzip(zipFile, zipPath, true);
+				+ compressedFile.substring(compressedFile
+						.lastIndexOf(File.separator));
+		DecompressUtils.decompress(compressedFile, zipPath, true);
 
 		// parse zip content
 		File zipFolder = new File(zipPath);
@@ -124,7 +121,7 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 			List<String> processedShips = new LinkedList<String>();
 			List<String> inPackageShips = null;
 			List<ShipType> ships = new LinkedList<ShipType>();
-			File tifFile = null;
+			File imageFile = null;
 			for (String fileName : zipFolder.list()) {
 				File file = new File(zipPath + File.separator + fileName);
 				if (fileName.endsWith("PKCS.xml")) {
@@ -132,12 +129,13 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 				} else if (fileName.endsWith(".xml")) {
 					processedShips.add(fileName);
 					ships.add(processShip(file));
-				} else if (fileName.endsWith(".tif")) {
-					// it should be the tiff
-					tifFile = file;
+				} else if (fileName.endsWith(".tif")
+						|| fileName.endsWith(".nc")) {
+					// it should be the tiff or the NetCDF file
+					imageFile = file;
 				}
 			}
-			msg = ingestData(processedShips, inPackageShips, ships, tifFile);
+			msg = ingestData(processedShips, inPackageShips, ships, imageFile);
 		} else {
 			throw new IOException(
 					"The file isn't a zip file or an error occur trying to decompress");
@@ -198,9 +196,9 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 	 * @return
 	 */
 	private String ingestData(List<String> processedShips,
-			List<String> inPackageShips, List<ShipType> ships, File tifFile) {
-		if(LOGGER.isTraceEnabled()){
-			LOGGER.trace("Tif file is  --> " + tifFile);
+			List<String> inPackageShips, List<ShipType> ships, File imageFile) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Tif file is  --> " + imageFile);
 			LOGGER.trace("Ships are  --> " + ships);
 		}
 		List<SimpleFeature> shipList = new LinkedList<SimpleFeature>();
@@ -212,9 +210,14 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 		}
 		// persist the ship list
 		persist(shipList);
-		if(tifFile != null){
-			// add the image mosaic
-			addImageMosaic(tifFile);
+		if (imageFile != null) {
+			if (imageFile.getName().endsWith(".tif")) {
+				// add the image mosaic
+				addImageMosaic(imageFile);
+			} else if (imageFile.getName().endsWith(".nc")) {
+				// add NetCDF image
+				addNetCDF(imageFile);
+			}
 		}
 		return "Succesfully insert of " + shipList.size() + " ships";
 	}
@@ -314,61 +317,6 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 		return feature;
 	}
 
-	/**
-	 * Unzip the zip file in a folder checking and cleaning the target folder
-	 * 
-	 * @param zipFilename
-	 * @param outdir
-	 * @param cleanAndCreateFolder
-	 *            flag to clean and create the target folder
-	 * @throws IOException
-	 */
-	public static void unzip(String zipFilename, String outdir,
-			boolean cleanAndCreateFolder) throws IOException {
-		if (cleanAndCreateFolder) {
-			File zipFolder = new File(outdir);
-			if (zipFolder.exists()) {
-				FileUtils.deleteDirectory(zipFolder);
-			}
-			FileUtils.forceMkdir(zipFolder);
-		}
-		unzip(zipFilename, outdir);
-	}
-
-	/**
-	 * Unzip the file in a target folder. It fixes a bug for linux environments
-	 * on {@link ZipUtil#unzip(String, String)} using the File.separator instead
-	 * "\\"
-	 * 
-	 * @param zipFilename
-	 * @param outdir
-	 * @throws IOException
-	 */
-	public static void unzip(String zipFilename, String outdir)
-			throws IOException {
-		ZipFile zipFile = new ZipFile(zipFilename);
-		@SuppressWarnings("rawtypes")
-		Enumeration entries = zipFile.entries();
-
-		while (entries.hasMoreElements()) {
-			ZipEntry entry = (ZipEntry) entries.nextElement();
-			byte[] buffer = new byte[1024];
-			int len;
-
-			InputStream zipin = zipFile.getInputStream(entry);
-			BufferedOutputStream fileout = new BufferedOutputStream(
-					new FileOutputStream(outdir + File.separator
-							+ entry.getName()));
-
-			while ((len = zipin.read(buffer)) >= 0)
-				fileout.write(buffer, 0, len);
-
-			zipin.close();
-			fileout.flush();
-			fileout.close();
-		}
-	}
-
 	@Override
 	public boolean canProcess(String filePath) {
 		// TODO Auto-generated method stub
@@ -377,7 +325,7 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 
 	@Override
 	public String doProcess(String filePath) throws IOException {
-		return processZip(filePath);
+		return processCompressedFile(filePath);
 	}
 
 }

@@ -44,6 +44,11 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
+
 import com.vividsolutions.jts.geom.GeometryFactory;
 
 /**
@@ -219,6 +224,66 @@ public abstract class ProductIngestionProcessor {
 			LOGGER.error("Could'nt insert the tif file", e);
 		}
     }
+
+    /**
+     * Add the NetCDF data
+     * @param imageFile
+     */
+	protected void addNetCDF(File imageFile) {
+		NetcdfFileWriteable ncFileIn = null;
+		try {
+			ncFileIn = NetcdfFileWriteable.openExisting(imageFile.getAbsolutePath());
+			ncFileIn.setRedefineMode(true);
+			// TODO: Improve prepare data
+			prepareNetCDF(ncFileIn);
+			ncFileIn.setRedefineMode(false);
+			ncFileIn.finish();
+			// TODO: Deploy on server
+		} catch (Exception e) {
+			LOGGER.error("Error inserting the NetCDF file "+imageFile.getAbsolutePath(), e);
+		}finally {
+			if(ncFileIn != null) {
+				try {
+					ncFileIn.close();
+				} catch (IOException e) {
+					LOGGER.error("Error closing the NetCDF file "+imageFile.getAbsolutePath(), e);
+				}
+			}
+		}
+	}
+	
+	private static String WIN_SPEED_NETCDF = "wind_speed";	
+
+	/**
+	 * This method prepare the NetCDF file to use in GeoServer as NetCDF store 
+	 * @param ncFileIn
+	 * @throws IOException
+	 */
+	@SuppressWarnings("deprecation")
+	private void prepareNetCDF(NetcdfFile ncFileIn) throws IOException {
+		// TODO Auto-generated method stub
+		List<Variable> variables = ncFileIn.getVariables();
+		List<Dimension> dimensions = ncFileIn.getDimensions();
+		if(dimensions.size() < 3){
+			// we need to add more dimensions
+			List<String> dimNames = new LinkedList<String>();
+			for(Dimension dim: dimensions){
+				dimNames.add(dim.getName());
+			}
+			// iterate on variables: add global dimensions
+			for(Variable var: variables){
+				if(var.getDataType().isFloatingPoint()
+						&& (WIN_SPEED_NETCDF.equals(var.getName()))){
+					// new dimName
+					dimNames.add(var.getName());
+					// add dimension
+					Dimension d = new Dimension(var.getName(), (int) var.getSize());
+					ncFileIn.addDimension(null, d);
+					dimensions.add(d);
+				}
+			}
+		}
+	}
 
 	/**
 	 * @return the imageMosaicConfiguration

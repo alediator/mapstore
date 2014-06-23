@@ -50,6 +50,7 @@ public class DataPackageIngestionProcessorTest {
 			.getLogger(DataPackageIngestionProcessorTest.class);
 	
 	private String filePathTest = "target/test-classes/TDX1_SAR__MGD_RE___SM_S_SRA_20110901T175713_20110901T175721_DER.zip";
+	private String filePathTest2 = "src/test/resources/0_RS1_STB_1FSCLS20111003_175545_00000018xS2x_16bxx_83066_29447_DER.tgz";
 	private String targetTifFolder = "/opt/gs_ext_data/TDX1_SAR__MGD_RE___SM_S_SRA"; 
 	
 	DataStore dataStore = null;
@@ -131,6 +132,16 @@ public class DataPackageIngestionProcessorTest {
 	@Test
 	public void parseTest() throws Exception {
 		processor.doProcess(filePathTest);
+	}
+
+	/**
+	 * Test the DataPackageIngestionProcessor process with NetCDF data
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void secondTest() throws Exception {
+		processor.doProcess(filePathTest2);
 	}
 	
 	/**
