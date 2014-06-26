@@ -19,6 +19,7 @@
  */
 package it.geosolutions.geobatch.mariss.ingestion.csv;
 
+import it.geosolutions.geobatch.mariss.ingestion.csv.configuration.CSVProcessorConfiguration;
 import it.geosolutions.geobatch.mariss.ingestion.csv.utils.CSVIngestUtils;
 
 import java.io.File;
@@ -41,6 +42,11 @@ public abstract class CSVProcessor {
     private final static Logger LOGGER = LoggerFactory.getLogger(CSVProcessor.class);
 
 	public abstract List<String> getHeaders();
+	
+	/**
+	 * Processor configuration
+	 */
+	private CSVProcessorConfiguration configuration;
 
     public boolean canProcess(List<String> ingestHeaders) {
         if (ingestHeaders == null) {
@@ -134,5 +140,19 @@ public abstract class CSVProcessor {
     public abstract int getFailCount();
     public abstract int getRemoveCount();
     public abstract int getUpdateCount();
+
+	/**
+	 * @return the configuration
+	 */
+	public CSVProcessorConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * @param configuration the configuration to set
+	 */
+	public void setConfiguration(CSVProcessorConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
 }

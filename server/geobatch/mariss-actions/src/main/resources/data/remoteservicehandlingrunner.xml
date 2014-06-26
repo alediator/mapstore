@@ -70,6 +70,11 @@
             <attributeMappings/>
             <remoteBrowserConfiguration>
               <dataTransferMethod />
+              <serverProtocol>local</serverProtocol>
+              <description>Local browser configuration</description>
+              <name>localBrowserConfiguration</name>
+              <dataTransferMethod />
+              <!-- Uncomment and configure this to use in a remote server 
               <serverProtocol>sftp</serverProtocol>
               <timeout>5000</timeout>
               <zipInput>false</zipInput>
@@ -83,7 +88,7 @@
               <operationId>Download</operationId>
               <id>monitorize</id>
               <description>SFTP inner configuration</description>
-              <name>sftpConfiguration</name>
+              <name>sftpConfiguration</name> -->
             </remoteBrowserConfiguration>
             <!-- Basic configuration -->
             <storeLocal>true</storeLocal>
@@ -95,10 +100,8 @@
             <inputPath>/tmp/ingestion/working</inputPath>
             <succesPath>/tmp/ingestion/ok</succesPath>
             <failPath>/tmp/ingestion/fail</failPath>
-            <!-- CSV separator -->
-            <csvSeparator>,</csvSeparator>
-            <!-- Table for the acq_list -->
-            <acqListTypeName>acq_list</acqListTypeName>
+            <!-- CSV ingestion path for the CSV Ingest action-->
+            <csvIngestionPath>csvingestion/in</csvIngestionPath>
             <!-- Listeners -->
             <listenerId>ConsumerLogger0</listenerId>
             <listenerId>Cumulator</listenerId>

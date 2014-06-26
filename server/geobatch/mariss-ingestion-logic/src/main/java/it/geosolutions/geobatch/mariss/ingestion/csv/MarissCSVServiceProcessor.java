@@ -22,7 +22,10 @@ package it.geosolutions.geobatch.mariss.ingestion.csv;
 import it.geosolutions.geobatch.catalog.impl.TimeFormat;
 import it.geosolutions.geobatch.mariss.dao.GenericDAO;
 import it.geosolutions.geobatch.mariss.dao.impl.GenericFeatureDaoImpl;
+import it.geosolutions.geobatch.mariss.ingestion.csv.configuration.CSVProcessorConfiguration;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -67,26 +70,26 @@ public abstract class MarissCSVServiceProcessor extends
 		super();
 	}
 
-	public MarissCSVServiceProcessor(Map<String, Object> connectionParam,
+	public MarissCSVServiceProcessor(Map<String, Serializable> connectionParam,
 			String typeName, String[] pkNames) {
 		this();
 		this.dao = new GenericFeatureDaoImpl(connectionParam, typeName, pkNames);
 	}
 
-	public MarissCSVServiceProcessor(Map<String, Object> connectionParam,
+	public MarissCSVServiceProcessor(Map<String, Serializable> connectionParam,
 			String typeName) {
 		this();
 		this.dao = new GenericFeatureDaoImpl(connectionParam, typeName,
 				getPkNames());
 	}
 
-	public MarissCSVServiceProcessor(Map<String, Object> connectionParam,
+	public MarissCSVServiceProcessor(Map<String, Serializable> connectionParam,
 			String typeName, String[] pkNames, TimeFormat timeFormat) {
 		this(connectionParam, typeName, pkNames);
 		this.timeFormat = timeFormat;
 	}
 
-	public MarissCSVServiceProcessor(Map<String, Object> connectionParam,
+	public MarissCSVServiceProcessor(Map<String, Serializable> connectionParam,
 			String typeName, TimeFormat timeFormat) {
 		this(connectionParam, typeName);
 		this.timeFormat = timeFormat;
@@ -116,6 +119,8 @@ public abstract class MarissCSVServiceProcessor extends
 		getDao().prepare();
 		try {
 			super.process(reader);
+		} catch (Exception e){
+			throw new CSVProcessException(e);
 		} finally {
 			// dispose DAO resources
 			getDao().dispose();
@@ -168,11 +173,11 @@ public abstract class MarissCSVServiceProcessor extends
 		return featureBuilder.buildFeature(null);
 	}
 
-	public void save(SimpleFeature entity) {
+	public void save(SimpleFeature entity) throws IOException {
 		dao.merge(entity);
 	}
 
-	public void persist(SimpleFeature entity) {
+	public void persist(SimpleFeature entity) throws IOException {
 		dao.persist(entity);
 	}
 
@@ -188,6 +193,17 @@ public abstract class MarissCSVServiceProcessor extends
 	 */
 	public void setProjection(int projection) {
 		this.projection = projection;
+	}
+
+	// TODO: Generalize this configuration to allow the dynamic composition of 
+	// CSV ingestion without the class creation like CSVProductTypes1To3Processor or CSVProductTypes5Processor
+	@Override
+	public void setConfiguration(CSVProcessorConfiguration configuration) {
+		super.setConfiguration(configuration);
+		this.dao = new GenericFeatureDaoImpl(configuration.getOutputFeature().getDataStore(), configuration.getTypeName(),
+				getPkNames());
+		this.timeFormat = new TimeFormat(null, null, null, configuration.getTimeFormatConfiguration());
+		this.projection = configuration.getProjection();
 	}
 
 }

@@ -78,6 +78,8 @@ public static Object parse(String origin, CSVPropertyType type)
     switch (type) {
     case INTEGER:
         return origin != null && origin.length() > 0 ? Integer.parseInt(origin): null;
+    case LONG:
+        return origin != null && origin.length() > 0 ? Long.parseLong(origin): null;
     case DOUBLE:
         return CSVIngestUtils.getDoubleValue(origin);
     case DATE_TIME:
