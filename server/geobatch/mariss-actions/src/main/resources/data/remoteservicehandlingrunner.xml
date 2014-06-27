@@ -69,7 +69,6 @@
             <projectOnMappings>false</projectOnMappings>
             <attributeMappings/>
             <remoteBrowserConfiguration>
-              <dataTransferMethod />
               <serverProtocol>local</serverProtocol>
               <description>Local browser configuration</description>
               <name>localBrowserConfiguration</name>
