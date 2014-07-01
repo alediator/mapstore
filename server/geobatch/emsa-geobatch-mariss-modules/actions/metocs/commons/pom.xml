@@ -82,6 +82,13 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-netcdf</artifactId>
 			<version>${gt.version}</version>
+			<!-- Use the compiled library https://github.com/Unidata/thredds/tree/v4.3.21/cdm -->
+			<exclusions>
+				<exclusion>
+					<groupId>edu.ucar</groupId>
+					<artifactId>netcdf</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -96,7 +103,12 @@
 			<artifactId>gt-geotiff</artifactId>
 		</dependency>
 
-		<!-- edu.ucar:netcdf:jar:4.2.32:compile -->
+        <!-- Use the compiled library https://github.com/Unidata/thredds/tree/v4.3.21/cdm -->
+        <dependency>
+          <groupId>edu.ucar</groupId>
+          <artifactId>netcdf</artifactId>
+          <version>4.3.21-SNAPSHOT</version>
+        </dependency>
 
 
 		<!-- imageio-ext ================================================-->

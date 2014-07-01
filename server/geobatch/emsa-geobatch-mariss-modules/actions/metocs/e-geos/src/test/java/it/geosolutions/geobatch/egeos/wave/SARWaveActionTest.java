@@ -21,9 +21,12 @@
  */
 package it.geosolutions.geobatch.egeos.wave;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
+import it.geosolutions.geobatch.egeos.BaseNetCDFActionTest;
+import it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsFileAction;
 
 import java.io.File;
 import java.util.EventObject;
@@ -44,40 +47,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations={"classpath:test-context.xml"})
-public class SARWaveActionTest {
+public class SARWaveActionTest extends BaseNetCDFActionTest{
 	
 	protected final static Logger LOGGER = LoggerFactory
 			.getLogger(SARWaveActionTest.class);
 
 	private String filePathTest = "src/test/resources/SAR_wave.nc";
-	
-	/**
-	 * Configuration for the SARWindAction
-	 * 
-	 * @return
-	 */
-	private SARWaveActionConfiguration getConfiguration() {
-
-		/**
-		 * <SARWaveActionConfiguration>
-		 * <workingDirectory>EGEOSworkingdir/SARWind</workingDirectory>
-		 * <crs>EPSG:4326</crs> <envelope/>
-		 * <metocDictionaryPath>registry_work/config
-		 * /NURC-2010/Super-Ensemble/metoc-dictionary.xml</metocDictionaryPath>
-		 * <metocHarvesterXMLTemplatePath>registry_work/config/NURC-2010/Super-
-		 * Ensemble/Nurc-Cim_Schema/
-		 * 2010_07_13/example/iso-models-template.xml</metocHarvesterXMLTemplatePath
-		 * > <id>a1</id> <description>description1</description>
-		 * <name>test</name> </SARWindActionConfiguration>
-		 */
-		SARWaveActionConfiguration config = new SARWaveActionConfiguration(
-				null, null, null);
-		config.setWorkingDirectory("working");
-		config.setCrs("EPSG:4326");		config.setMetocDictionaryPath("registry_work/config/NURC-2010/Super-Ensemble/metoc-dictionary.xml");
-		config.setMetocHarvesterXMLTemplatePath("registry_work/config/NURC-2010/Super-Ensemble/Nurc-Cim_Schema/2010_07_13/example/iso-models-template.xml");
-
-		return config;
-	}
 
 	/**
 	 * Test the SARWaveAction process
@@ -88,8 +63,11 @@ public class SARWaveActionTest {
 	public void sarWaveTest() throws Exception {
 		try{
 			// configure
-			SARWaveActionConfiguration configuration = getConfiguration();
+			SARWaveActionConfiguration configuration = new SARWaveActionConfiguration(
+					null, null, null);
+			prepareConfiguration(configuration);
 			SARWaveAction action = new SARWaveAction(configuration);
+			NetCDFCFGeodetic2GeoTIFFsFileAction netCDFToTiffAction = new NetCDFCFGeodetic2GeoTIFFsFileAction(getNetCDF2TiffConfig());
 			// launch
 			Queue<EventObject> events = new LinkedList<EventObject>();
 			File file = new File(filePathTest);
@@ -97,8 +75,12 @@ public class SARWaveActionTest {
 			FileSystemEvent event = new FileSystemEvent(file,
 					FileSystemEventType.FILE_ADDED);
 			events.add(event);
-			@SuppressWarnings({ "unused", "rawtypes" })
-			Queue result = action.execute(events);
+			// first operation
+			Queue<EventObject> result = action.execute(events);
+			assertNotNull(result);
+			// second operation
+			result = netCDFToTiffAction.execute(result);
+			assertNotNull(result);
 		}catch (Exception e){
 			LOGGER.error("Error on the file process", e);
 			fail();
