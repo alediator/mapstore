@@ -24,7 +24,7 @@ public class NetCDFCFGeodetic2GeoTIFFsConfiguration extends MetocActionConfigura
         this.layerParentDirectory = outputDirectory;
     }
 
-    protected NetCDFCFGeodetic2GeoTIFFsConfiguration(String id, String name, String description) {
+    public NetCDFCFGeodetic2GeoTIFFsConfiguration(String id, String name, String description) {
         super(id, name, description);
     }
 

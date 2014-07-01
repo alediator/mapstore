@@ -5,11 +5,15 @@
 
 	<!-- Environment Initialization -->
 	
-	<bean id="NetCDFCFGeodetic2GeoTIFFsGeneratorService" class="it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsGeneratorService">
+	<!-- <bean id="NetCDFCFGeodetic2GeoTIFFsGeneratorService" class="it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsGeneratorService">
 		<constructor-arg type="String"><value>NetCDFCFGeodetic2GeoTIFFsGeneratorService</value></constructor-arg>
     	<constructor-arg type="String"><value>NetCDFCFGeodetic2GeoTIFFsGeneratorService</value></constructor-arg>
     	<constructor-arg type="String"><value>NetCDFCFGeodetic2GeoTIFFsGeneratorService</value></constructor-arg>	
-	</bean>
+	</bean> -->
+	
+	<!-- bean id="NetCDFCFGeodetic2GeoTIFFsGeneratorService" class="it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsGeneratorService">
+		<constructor-arg type="String"><value>NetCDFCFGeodetic2GeoTIFFsGeneratorService</value></constructor-arg>
+	</bean-->
 	
 	<!--<bean id="HDF42GeoTIFFsGeneratorService" class="it.geosolutions.geobatch.metocs.remsens.HDF42GeoTIFFsGeneratorService">
 		<constructor-arg type="String"><value>HDF42GeoTIFFsGeneratorService</value></constructor-arg>
@@ -30,12 +34,12 @@
     	<constructor-arg type="String"><value>OSTIA2GeoTIFFsGeneratorService</value></constructor-arg>	
 	</bean>-->
 	
-	<bean id="MetocActionsAliasRegistrar" class="it.geosolutions.geobatch.metocs.commons.MetocActionsAliasRegistrar" lazy-init="false">
+	<!-- bean id="MetocActionsAliasRegistrar" class="it.geosolutions.geobatch.metocs.commons.MetocActionsAliasRegistrar" lazy-init="false">
         <constructor-arg ref="aliasRegistry" />
     </bean>
     
     <bean id="NetcdfGeodetic2GeoTIFFAliasRegistrar" class="it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsAliasRegistrar" lazy-init="false">
         <constructor-arg ref="aliasRegistry" />
-    </bean>
+    </bean-->
 
 </beans>

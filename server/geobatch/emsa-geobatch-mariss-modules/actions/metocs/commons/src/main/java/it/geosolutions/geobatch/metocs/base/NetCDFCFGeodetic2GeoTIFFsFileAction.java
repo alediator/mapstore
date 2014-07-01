@@ -23,8 +23,7 @@ package it.geosolutions.geobatch.metocs.base;
 
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
-import it.geosolutions.geobatch.actions.tools.adapter.EventAdapter;
-import it.geosolutions.geobatch.flow.event.IProgressListener;
+import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.flow.event.action.ActionException;
 import it.geosolutions.geobatch.flow.event.action.BaseAction;
 import it.geosolutions.geobatch.imagemosaic.ImageMosaicCommand;
@@ -40,7 +39,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.GregorianCalendar;
@@ -80,8 +78,8 @@ import ucar.nc2.dataset.NetcdfDataset;
  * height { height:long_name = "height"; height:units = "m"; height:positive = "up"; }
  * 
  */
-public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject> implements
-        EventAdapter<NetcdfEvent> {
+@Action(configurationClass = NetCDFCFGeodetic2GeoTIFFsConfiguration.class)
+public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>{
 
     /**
      * GeoTIFF Writer Default Params
@@ -106,7 +104,7 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
      */
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS'Z'");
 
-    protected NetCDFCFGeodetic2GeoTIFFsFileAction(
+    public NetCDFCFGeodetic2GeoTIFFsFileAction(
             NetCDFCFGeodetic2GeoTIFFsConfiguration configuration) throws IOException {
         super(configuration.getId(), configuration.getName(), configuration.getDescription());
         this.configuration = configuration;
@@ -458,15 +456,19 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                                 var, METOCSActionsIOUtils.DEPTH_DIM)
                                 || NetCDFConverterUtilities.hasThisDimension(var,
                                         METOCSActionsIOUtils.HEIGHT_DIM);
+                        
+                        if (LOGGER.isLoggable(Level.FINEST))
+                        	LOGGER.fine("Moving on with imc");
 
                         /*
                          * Creating a new ImageMosaicCommand to add a layer using this geotiff
                          * (variable)
                          */
                         List<File> addList = new ArrayList<File>();
-                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(
+                        String fileName = 
                                 layerDir.getAbsoluteFile() + File.separator + inputFileName + "_"
-                                        + varName), addList, null);
+                                        + varName;
+                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);
 
                         for (int z = 0; z < (hasLocalZLevel ? nZeta : 1); z++) {
                             for (int t = 0; t < (timeDimExists ? nTime : 1); t++) {
@@ -505,6 +507,9 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                                         coverageName.toString(), varName, userRaster, noData,
                                         envelope, DEFAULT_COMPRESSION_TYPE,
                                         DEFAULT_COMPRESSION_RATIO, DEFAULT_TILE_SIZE);
+                                
+                                if (LOGGER.isLoggable(Level.FINEST))
+                                	LOGGER.fine("gtiffFile --> "+ gtiffFile.getAbsolutePath());
 
                                 addList.add(gtiffFile);
                             }
@@ -625,6 +630,14 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
 	public boolean checkConfiguration() {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	/**
+	 * @return the configuration
+	 */
+	@SuppressWarnings("unchecked")
+	public NetCDFCFGeodetic2GeoTIFFsConfiguration getConfiguration() {
+		return configuration;
 	}
 
 }

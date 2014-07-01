@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 
 public class MetocActionConfiguration extends ActionConfiguration implements Configuration {
 
-    protected MetocActionConfiguration(String id, String name, String description) {
+    public MetocActionConfiguration(String id, String name, String description) {
         super(id, name, description);
         
         

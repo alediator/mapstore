@@ -21,7 +21,7 @@
  */
 package it.geosolutions.geobatch.egeos.wave;
 
-import it.geosolutions.geobatch.flow.event.IProgressListener;
+import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
 import it.geosolutions.geobatch.metocs.commons.MetocBaseAction;
 import it.geosolutions.geobatch.metocs.jaxb.model.MetocElementType;
@@ -39,7 +39,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -66,6 +65,7 @@ import ucar.nc2.Variable;
  * Public class to transform E-GEOS::SARWave Derived Data
  * 
  */
+@Action(configurationClass = SARWaveActionConfiguration.class)
 public class SARWaveAction extends MetocBaseAction {
 
     private final static Logger LOGGER = Logger.getLogger(SARWaveAction.class.getName());
@@ -76,7 +76,7 @@ public class SARWaveAction extends MetocBaseAction {
 
     private Attribute referenceTime;
 
-    protected SARWaveAction(MetocActionConfiguration configuration) throws IOException {
+    public SARWaveAction(MetocActionConfiguration configuration) throws IOException {
         super(configuration);
     }
 
@@ -90,17 +90,22 @@ public class SARWaveAction extends MetocBaseAction {
             ncFileIn = NetcdfFile.open(inputFileName);
 
             // input dimensions
-            final Dimension ra_size = ncFileIn.findDimension("ra_size");
-
-            final Dimension az_size = ncFileIn.findDimension("az_size");
+            //final Dimension ra_size = ncFileIn.findDimension("ra_size");
+            //final Dimension az_size = ncFileIn.findDimension("az_size");
+            // use custom find. the default one is case sensible 
+            final Dimension ra_size = findDimension(ncFileIn, "ra_size");
+            final Dimension az_size = findDimension(ncFileIn, "az_size");
 
             // final Dimension n_partitions = ncFileIn.findDimension("n_partitions");
 
             // input VARIABLES
-            final Variable lonOriginalVar = ncFileIn.findVariable("longitude");
+            // use custom find. the default one is case sensible
+            //final Variable lonOriginalVar = ncFileIn.findVariable("longitude");
+            final Variable lonOriginalVar = findVariable(ncFileIn, "longitude");
             final DataType lonDataType = lonOriginalVar.getDataType();
 
-            final Variable latOriginalVar = ncFileIn.findVariable("latitude");
+            //final Variable latOriginalVar = ncFileIn.findVariable("latitude");
+            final Variable latOriginalVar = findVariable(ncFileIn, "latitude");
             final DataType latDataType = latOriginalVar.getDataType();
 
             final Array lonOriginalData = lonOriginalVar.read();
@@ -173,7 +178,7 @@ public class SARWaveAction extends MetocBaseAction {
         return outputFile;
     }
 
-    // ////////////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Utility and conversion specific methods implementations...
     //
@@ -323,7 +328,8 @@ public class SARWaveAction extends MetocBaseAction {
                 envelope.getLowerCorner().getOrdinate(1), envelope.getUpperCorner().getOrdinate(0),
                 envelope.getUpperCorner().getOrdinate(1) };
 
-        final Variable maskOriginalVar = ncFileIn.findVariable("valid");
+        //final Variable maskOriginalVar = ncFileIn.findVariable("valid");
+        final Variable maskOriginalVar = findVariable(ncFileIn, "valid");
         
         final Array maskOriginalData = maskOriginalVar.read();
 
@@ -409,6 +415,9 @@ public class SARWaveAction extends MetocBaseAction {
                 ncFileOut.write(foundVariableBriefNames.get(varName), outVarData);
             }
         }
+        
+        if (LOGGER.isLoggable(Level.FINEST))
+        	LOGGER.info("File Resampling completed in file: "+ ncFileOut.getDetailInfo());
     }
 
 	@Override

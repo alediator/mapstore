@@ -21,6 +21,7 @@
  */
 package it.geosolutions.geobatch.egeos.wind;
 
+import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
 import it.geosolutions.geobatch.metocs.commons.MetocBaseAction;
 import it.geosolutions.geobatch.metocs.jaxb.model.MetocElementType;
@@ -64,6 +65,7 @@ import ucar.nc2.Variable;
  * Public class to transform E-GEOS::SARWind Derived Data
  * 
  */
+@Action(configurationClass = SARWindActionConfiguration.class)
 public class SARWindAction extends MetocBaseAction {
 
     private final static Logger LOGGER = Logger.getLogger(SARWindAction.class.getName());
@@ -85,6 +87,8 @@ public class SARWindAction extends MetocBaseAction {
         File outputFile = null;
 
         try {
+        	
+        	LOGGER.info("opening "+ inputFileName);
 
             ncFileIn = NetcdfFile.open(inputFileName);
 
@@ -375,6 +379,10 @@ public class SARWindAction extends MetocBaseAction {
 
             ncFileOut.write(foundVariableBriefNames.get(varName), outVarData);
         }
+        
+        if (LOGGER.isLoggable(Level.FINEST))
+        	LOGGER.info("File Resampling completed in file: "+ ncFileOut.getDetailInfo());
+        
     }
 
 	@Override

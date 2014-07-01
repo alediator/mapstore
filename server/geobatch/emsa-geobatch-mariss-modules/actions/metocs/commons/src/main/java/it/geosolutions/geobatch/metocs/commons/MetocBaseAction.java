@@ -24,6 +24,7 @@ package it.geosolutions.geobatch.metocs.commons;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
 import it.geosolutions.geobatch.catalog.file.FileBaseCatalog;
+import it.geosolutions.geobatch.configuration.event.action.ActionConfiguration;
 import it.geosolutions.geobatch.flow.event.action.ActionException;
 import it.geosolutions.geobatch.flow.event.action.BaseAction;
 import it.geosolutions.geobatch.global.CatalogHolder;
@@ -37,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -53,6 +55,7 @@ import org.geotools.geometry.GeneralEnvelope;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 /**
@@ -61,10 +64,22 @@ import ucar.nc2.Variable;
  * @author Alessio Fabiani, GeoSolutions S.A.S.
  * 
  */
-public abstract class MetocBaseAction extends BaseAction<FileSystemEvent> {
-    private final static Logger LOGGER = Logger.getLogger(MetocBaseAction.class.toString());
+public abstract class MetocBaseAction extends BaseAction<EventObject> {
+    @Override
+	public boolean checkConfiguration() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
-    private final MetocActionConfiguration configuration;
+	@Override
+	public <T extends ActionConfiguration> T getConfiguration() {
+		// TODO Auto-generated method stub
+		return (T) configuration;
+	}
+
+	private final static Logger LOGGER = Logger.getLogger(MetocBaseAction.class.toString());
+
+    protected final MetocActionConfiguration configuration;
 
     public MetocBaseAction(MetocActionConfiguration configuration) {
         super(configuration.getId(), configuration.getName(), configuration.getDescription());
@@ -106,8 +121,7 @@ public abstract class MetocBaseAction extends BaseAction<FileSystemEvent> {
     /**
 	 * 
 	 */
-    public Queue<FileSystemEvent> execute(Queue<FileSystemEvent> events) throws ActionException {
-
+    public Queue<EventObject> execute(Queue<EventObject> events) throws ActionException {
         if (LOGGER.isLoggable(Level.INFO))
             LOGGER.info("MetocBaseAction:execute(): Starting with processing...");
         try {
@@ -117,7 +131,7 @@ public abstract class MetocBaseAction extends BaseAction<FileSystemEvent> {
                         "MetocBaseAction:execute(): Wrong number of elements for this action: "
                                 + events.size());
 
-            FileSystemEvent event = events.remove();
+            FileSystemEvent event = (FileSystemEvent) events.remove();
             @SuppressWarnings("unused")
             final String configId = getName();
 
@@ -126,9 +140,18 @@ public abstract class MetocBaseAction extends BaseAction<FileSystemEvent> {
             // Initializing input variables
             //
             // ////////////////////////////////////////////////////////////////////
+            
             final File workingDir = Path.findLocation(configuration.getWorkingDirectory(),
             		((FileBaseCatalog) CatalogHolder.getCatalog()).getBaseDirectory());
+            
+            
+//            final File workingDir = new File(configuration.getWorkingDirectory());
+            
+            
+            
+            
             /*
+             * 
              * Old code
              *
             final File workingDir = Path.findLocation(configuration.getWorkingDirectory(),
@@ -254,6 +277,88 @@ public abstract class MetocBaseAction extends BaseAction<FileSystemEvent> {
      */
     protected abstract File writeDownNetCDF(File outDir, String inputFileName) throws IOException,
             InvalidRangeException, ParseException, JAXBException;
+
+	/**
+     * Find a variable in a ncFile. Ignore name case
+     * @param ncFile
+     * @param name
+     * @return
+     */
+	protected Variable findVariable(NetcdfFile ncFile, String name) {
+    	// Default search is with a lower name
+		return findVariable(ncFile, name, true);
+	}
+
+	/**
+     * Find a variable in a ncFile
+     * @param ncFile
+     * @param name
+     * @param ignoreCase flag
+     * @return
+     */
+    @SuppressWarnings("deprecation")
+	protected Variable findVariable(NetcdfFile ncFile, String name, boolean ignoreCase) {
+    	// Default search
+    	Variable variable = ncFile.findVariable(name);
+    	if(variable != null){
+    		// found with default search
+    		return variable;
+    	}else{
+    		// not found, try to iterate and look ignoring case
+    		for(Variable var : ncFile.getVariables()){
+    			String nameCompare = var.getName(); 
+    			// compare with ignore case or not 
+            	if(ignoreCase && nameCompare.toLowerCase().equals(name.toLowerCase())){
+            		return var;
+            	}else if(nameCompare.equals(name)){
+            		return var;
+            	}
+            	
+            }
+    	}
+    	// not found
+		return null;
+	}
+
+    /**
+     * Find a dimension in a ncFile. Ignore name case
+     * @param ncFile
+     * @param name
+     * @return
+     */
+    protected Dimension findDimension(NetcdfFile ncFile, String name) {
+    	// Default search is with a lower name
+		return findDimension(ncFile, name, true);
+	}
+
+    /**
+     * Find a dimension in a ncFile. Ignore name case
+     * @param ncFile
+     * @param name
+     * @param lower flag to compare with: lower name (true), upper name (false) or exact name (null)
+     * @return
+     */
+    protected Dimension findDimension(NetcdfFile ncFile, String name, boolean ignoreCase) {
+    	// Default search
+    	Dimension dimension = ncFile.findDimension(name);
+    	if(dimension != null){
+    		// found with default search
+    		return dimension;
+    	}else{
+    		// not found, try to iterate and look ignoring case
+    		for(Dimension dim : ncFile.getDimensions()){
+    			String nameCompare = dim.getName();
+    			// compare with ignore case or not 
+            	if(ignoreCase && nameCompare.toLowerCase().equals(name.toLowerCase())){
+            		return dim;
+            	}else if(nameCompare.equals(name)){
+            		return dim;
+            	}
+            }
+    	}
+    	// not found
+		return null;
+	}
     
 
 }

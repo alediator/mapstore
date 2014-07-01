@@ -5,28 +5,19 @@
 	<autorun>true</autorun>
 	
 	<EventConsumerConfiguration>
-		<workingDirectory>EGEOSworkingdir/SARWind</workingDirectory>
-		<performBackup>false</performBackup>
-		<FileEventRule>
-			<optional>false</optional>
-			<originalOccurrencies>1</originalOccurrencies>
-			<regex>.*\.*</regex>
-			<id>r1</id>
-			<description>description</description>
-			<name>test</name>
-		</FileEventRule>
+		<!-- workingDirectory>EGEOSworkingdir/SARWind</workingDirectory>
+		<performBackup>false</performBackup-->
 
-		<MetocActionConfiguration>
+		<SARWindActionConfiguration>
 			<workingDirectory>EGEOSworkingdir/SARWind</workingDirectory>
 			<crs>EPSG:4326</crs>
 			<envelope/>
 			<metocDictionaryPath>registry_work/config/NURC-2010/Super-Ensemble/metoc-dictionary.xml</metocDictionaryPath>
 			<metocHarvesterXMLTemplatePath>registry_work/config/NURC-2010/Super-Ensemble/Nurc-Cim_Schema/2010_07_13/example/iso-models-template.xml</metocHarvesterXMLTemplatePath>
-			<serviceID>EGEOSSARWindGeneratorService</serviceID>
 			<id>a1</id>
 			<description>description1</description>
 			<name>test</name>
-		</MetocActionConfiguration>
+		</SARWindActionConfiguration>
 		
 		<!-- MetocActionConfiguration>
 			<workingDirectory>EGEOSworkingdir/SARWind</workingDirectory>
