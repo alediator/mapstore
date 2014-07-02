@@ -222,6 +222,35 @@ public abstract class ProductIngestionProcessor {
 		}
     }
 
+    /**
+     * Add the NetCDF data
+     * @param imageFile
+     */
+	protected void addNetCDF(File imageFile) {
+		LOGGER.error("Ingestion not avalable for NetCDF file: "+imageFile.getAbsolutePath());
+		// TODO
+//		NetcdfFileWriteable ncFileIn = null;
+//		try {
+//			ncFileIn = NetcdfFileWriteable.openExisting(imageFile.getAbsolutePath());
+//			ncFileIn.setRedefineMode(true);
+//			// TODO: Improve prepare data
+//			prepareNetCDF(ncFileIn);
+//			ncFileIn.setRedefineMode(false);
+//			ncFileIn.finish();
+//			// TODO: Deploy on server
+//		} catch (Exception e) {
+//			LOGGER.error("Error inserting the NetCDF file "+imageFile.getAbsolutePath(), e);
+//		}finally {
+//			if(ncFileIn != null) {
+//				try {
+//					ncFileIn.close();
+//				} catch (IOException e) {
+//					LOGGER.error("Error closing the NetCDF file "+imageFile.getAbsolutePath(), e);
+//				}
+//			}
+//		}
+	}
+
 	/**
 	 * @return the imageMosaicConfiguration
 	 */
