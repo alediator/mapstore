@@ -125,6 +125,7 @@
 			<artifactId>netcdf-converters</artifactId>
 			<version>${imageio-ext.version}</version>
 			<exclusions>
+				<!-- Use the compiled library https://github.com/Unidata/thredds/tree/v4.3.21/cdm -->
 				<exclusion>
 					<groupId>essi-unidata</groupId>
 					<artifactId>netcdf-java</artifactId>
