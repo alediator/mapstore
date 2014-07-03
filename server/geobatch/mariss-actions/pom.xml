@@ -104,11 +104,18 @@
             <scope>test</scope>
         </dependency>
 
-          <dependency>
+        <!-- Test dependencies -->
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
-          </dependency>
+        </dependency>
+
+        <dependency>
+          <groupId>it.geosolutions.geobatch</groupId>
+          <artifactId>gb-dao-xstream</artifactId>
+          <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>it.geosolutions.imageio-ext</groupId>

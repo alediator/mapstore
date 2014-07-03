@@ -31,7 +31,6 @@ import it.geosolutions.geobatch.egeos.wave.SARWaveAction;
 import it.geosolutions.geobatch.egeos.wave.SARWaveActionConfiguration;
 import it.geosolutions.geobatch.egeos.wind.SARWindAction;
 import it.geosolutions.geobatch.egeos.wind.SARWindActionConfiguration;
-import it.geosolutions.geobatch.imagemosaic.ImageMosaicConfiguration;
 import it.geosolutions.geobatch.imagemosaic.config.DomainAttribute;
 import it.geosolutions.geobatch.mariss.ingestion.csv.CSVAcqListProcessor;
 import it.geosolutions.geobatch.mariss.ingestion.csv.CSVProductTypes1To3Processor;
@@ -40,6 +39,7 @@ import it.geosolutions.geobatch.mariss.ingestion.csv.MarissCSVServiceProcessor;
 import it.geosolutions.geobatch.mariss.ingestion.product.DataPackageIngestionConfiguration;
 import it.geosolutions.geobatch.mariss.ingestion.product.DataPackageIngestionProcessor;
 import it.geosolutions.geobatch.metocs.base.NetCDFCFGeodetic2GeoTIFFsFileAction;
+import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
 import it.geosolutions.geobatch.remoteBrowser.configuration.RemoteBrowserConfiguration;
 
 import java.io.File;
@@ -66,6 +66,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations={"classpath:test-context.xml"})
 public class RemoteServiceHandlingActionTest extends BaseNetCDFActionTest {
+
+	@Override
+	protected void prepareConfiguration(MetocActionConfiguration config) {
+		// TODO Auto-generated method stub
+		super.prepareConfiguration(config);		
+		config.setMetocDictionaryPath("/home/adiaz/apps/mariss-apache-tomcat-6.0.30/webapps/geobatch/WEB-INF/data/" + METOC_DIRECTORY_PATH);
+		config.setMetocHarvesterXMLTemplatePath("/home/adiaz/apps/mariss-apache-tomcat-6.0.30/webapps/geobatch/WEB-INF/data/" + METOC_HARVESTER_XML_TEMPLATE_PATH);
+	}
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(RemoteServiceHandlingActionTest.class);
@@ -123,7 +131,10 @@ public class RemoteServiceHandlingActionTest extends BaseNetCDFActionTest {
 		result = netCDFToTiffAction.execute(result);
 		assertNotNull(result);
 		LOGGER.info("Result NetCDFCFGeodetic2GeoTIFFsFileAction: " + result);
-		
+		CustomImageMosaicAction imcAction = new CustomImageMosaicAction(getImageMosaicConfiguration());
+		result = imcAction.execute(result);
+		assertNotNull(result);
+		LOGGER.info("Result imcAction: " + result);
 	}
 	
 	/**
@@ -146,8 +157,8 @@ public class RemoteServiceHandlingActionTest extends BaseNetCDFActionTest {
 	 * Connection for the local geoserver for test
 	 * @return
 	 */
-	private ImageMosaicConfiguration getImageMosaicConfiguration(){
-		ImageMosaicConfiguration imConfig = new ImageMosaicConfiguration(null, null, null);
+	private CustomImageMosaicConfiguration getImageMosaicConfiguration(){
+		CustomImageMosaicConfiguration imConfig = new CustomImageMosaicConfiguration(null, null, null);
 		//TODO: load from properties
 		imConfig.setAllowMultithreading(true);
 		imConfig.setBackgroundValue("NaN");
@@ -259,121 +270,3 @@ public class RemoteServiceHandlingActionTest extends BaseNetCDFActionTest {
 		return configuration;
 	}
 }
-
-
-
-/**
- * 
-
-<SARWindActionConfiguration>
-<!-- Listeners -->
-<listenerId>ConsumerLogger0</listenerId>
-<listenerId>Cumulator</listenerId>
-<listenerId>Status</listenerId>
-
-<workingDirectory>EGEOSWorkingDir/SARWind/</workingDirectory>
-<crs>EPSG:4326</crs>
-<envelope/>
-<metocDictionaryPath>registry_work/config/NURC-2010/Super-Ensemble/metoc-dictionary.xml</metocDictionaryPath>
-<metocHarvesterXMLTemplatePath>registry_work/config/NURC-2010/Super-Ensemble/Nurc-Cim_Schema/2010_07_13/example/iso-models-template.xml</metocHarvesterXMLTemplatePath>
-<!--serviceID>SARWindGeneratorService</serviceID-->
-<id>EGEOSSARWind_a1</id>
-<description>EGEOSSARWind</description>
-<name>EGEOSSARWind_a1</name>
-</SARWindActionConfiguration>
-
-<SARWaveActionConfiguration>
-<!-- Listeners -->
-<listenerId>ConsumerLogger0</listenerId>
-<listenerId>Cumulator</listenerId>
-<listenerId>Status</listenerId>
-
-<workingDirectory>EGEOSWorkingDir/SARWave/</workingDirectory>
-<crs>EPSG:4326</crs>
-<envelope/>
-<metocDictionaryPath>registry_work/config/NURC-2010/Super-Ensemble/metoc-dictionary.xml</metocDictionaryPath>
-<metocHarvesterXMLTemplatePath>registry_work/config/NURC-2010/Super-Ensemble/Nurc-Cim_Schema/2010_07_13/example/iso-models-template.xml</metocHarvesterXMLTemplatePath>
-<id>EGEOSSARWave_a1</id>
-<description>EGEOSSARWave</description>
-<name>EGEOSSARWave_a1</name>
-</SARWaveActionConfiguration>
-
-<NetCDFCFGeodetic2GeoTIFFsConfiguration>
-<!-- Listeners -->
-<listenerId>ConsumerLogger0</listenerId>
-<listenerId>Cumulator</listenerId>
-<listenerId>Status</listenerId>
-<workingDirectory>EGEOSWorkingDir/SARWind/</workingDirectory>
-<layerParentDirectory>/opt/gs_ext_data/</layerParentDirectory>
-
-<crs>EPSG:4326</crs>
-<envelope/>
-<timeUnStampedOutputDir>true</timeUnStampedOutputDir>
-<metocDictionaryPath>registry_work/config/NURC-2010/Super-Ensemble/metoc-dictionary.xml</metocDictionaryPath>
-<metocHarvesterXMLTemplatePath>registry_work/config/NURC-2010/Super-Ensemble/Nurc-Cim_Schema/2010_07_13/example/iso-models-template.xml</metocHarvesterXMLTemplatePath>
-<!--serviceID>NetCDFCFGeodetic2GeoTIFFsGeneratorService</serviceID-->
-<id>EGEOSSARWind_a2</id>
-<description>EGEOSSARWind NetCDFCFGeodetic2GeoTIFFs</description>
-<name>EGEOSSARWind_a2</name>
-</NetCDFCFGeodetic2GeoTIFFsConfiguration>
-
-<CustomImageMosaicConfiguration>
-<!-- Listeners -->
-<listenerId>ConsumerLogger0</listenerId>
-<listenerId>Cumulator</listenerId>
-<listenerId>Status</listenerId>
-
-<id>ImageMosaicService</id>
-<description>ImageMosaicService for tiff ingestion</description>
-<name>MARISS ImageMosaicService</name>
-
-<!--serviceID>ImageMosaicGeneratorService</serviceID-->
-<!-- <workingDirectory>EGEOSWorkingDir/SARWind/</workingDirectory> -->
-
-        <COARDS>false</COARDS>
-
-        <NativeMinBoundingBoxX>-15</NativeMinBoundingBoxX>
-
-        <NativeMinBoundingBoxY>28</NativeMinBoundingBoxY>
-
-        <NativeMaxBoundingBoxX>38</NativeMaxBoundingBoxX>
-
-        <NativeMaxBoundingBoxY>46</NativeMaxBoundingBoxY>
-
-        <latLonMinBoundingBoxX>-15</latLonMinBoundingBoxX>
-
-        <latLonMinBoundingBoxY>28</latLonMinBoundingBoxY>
-
-        <latLonMaxBoundingBoxX>38</latLonMaxBoundingBoxX>
-
-        <latLonMaxBoundingBoxY>46</latLonMaxBoundingBoxY>
-
-<crs>EPSG:4326</crs>
-<envelope/>
-<dataTransferMethod>EXTERNAL</dataTransferMethod>
-<geoserverPWD>geoserver</geoserverPWD>
-<geoserverUID>admin</geoserverUID>
-<geoserverURL>http://localhost:8080/geoserver/</geoserverURL>
-<wmsPath>/</wmsPath>
-<defaultNamespace>mariss</defaultNamespace>
-<defaultStyle>raster</defaultStyle>
-
-<backgroundValue>0</backgroundValue>
-        <allowMultithreading>true</allowMultithreading>
-        <useJaiImageRead>false</useJaiImageRead>
-        <tileSizeH>256</tileSizeH>
-        <tileSizeW>256</tileSizeW>
-
-        <timeDimEnabled>true</timeDimEnabled>
-<!--                    <dirName>DIR</dirName>-->
-<!-- LIST, CONTINUOUS_INTERVAL, DISCRETE_INTERVAL -->
-        <timePresentationMode>CONTINUOUS_INTERVAL</timePresentationMode>
-
-
-<styles/>
-<datastorePropertiesPath>/home/adiaz/apps/mariss-apache-tomcat-6.0.30/webapps/geobatch/WEB-INF/data/EGEOSWorkingDir/config/datastore.properties</datastorePropertiesPath>
-<timeRegex>[0-9]{8}T[0-9]{9}Z(\?!.\*[0-9]{8}T[0-9]{9}Z.\*)</timeRegex>
-<!-- elevationRegex><![CDATA[(?<=_)(\d{4}\.\d{3})(?=_)]]></elevationRegex -->
-<!-- runtimeRegex><![CDATA[(?<=_)(\d{10})(?=_)]]></runtimeRegex -->
-</CustomImageMosaicConfiguration>
- */

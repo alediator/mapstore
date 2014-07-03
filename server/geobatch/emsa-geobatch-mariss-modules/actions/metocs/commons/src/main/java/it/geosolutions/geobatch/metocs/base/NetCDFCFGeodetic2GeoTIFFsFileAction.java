@@ -606,9 +606,10 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
 //                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): "
 //                                                + "Unable to get a serialized command file");
 //                        }
-                        LOGGER.info("FIXME: Move on with IMC "+ fileName);
-//                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);
-//                        ret.add(new EventObject(cmd));
+                        if(LOGGER.isLoggable(Level.FINE))
+                        	LOGGER.log(Level.FINE, "Move on with IMC "+ fileName);
+                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);
+                        ret.add(new EventObject(cmd));
                     } else {
                         if (LOGGER.isLoggable(Level.SEVERE))
                             LOGGER.log(Level.SEVERE,
