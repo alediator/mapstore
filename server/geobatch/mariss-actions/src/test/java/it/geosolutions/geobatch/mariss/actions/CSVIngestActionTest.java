@@ -17,13 +17,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.geobatch.mariss.action.csv;
+package it.geosolutions.geobatch.mariss.actions;
 
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
 import it.geosolutions.geobatch.catalog.impl.TimeFormat;
 import it.geosolutions.geobatch.catalog.impl.configuration.TimeFormatConfiguration;
-import it.geosolutions.geobatch.mariss.actions.CSVIngestAction;
 import it.geosolutions.geobatch.mariss.ingestion.csv.CSVAcqListProcessor;
 import it.geosolutions.geobatch.mariss.ingestion.csv.CSVProductTypes1To3Processor;
 import it.geosolutions.geobatch.mariss.ingestion.csv.CSVProductTypes5Processor;
@@ -116,22 +115,22 @@ public class CSVIngestActionTest {
 		CSVAcqListProcessor acqProcessor = getAcqProcessor();
 
 		if (acqProcessor != null) {
-//			CSVIngestAction action = new CSVIngestAction(
-//					new CSVIngestConfiguration(null, null, null));
-//			action.addProcessor(acqProcessor);
-//			action.addProcessor(getProcessor("products_1to3", "CLS", "CLS1"));
-//			action.addProcessor(getProcessor("products_5", "CLS", "CLS1"));
-//			Queue<EventObject> events = new LinkedList<EventObject>();
-//
-//			for (File file : FileUtils.listFiles(new File("."),
-//					new String[] { "csv" }, true)) {
-//				LOGGER.info("Loading " + file);
-//				FileSystemEvent event = new FileSystemEvent(file,
-//						FileSystemEventType.FILE_ADDED);
-//				events.add(event);
-//				@SuppressWarnings({ "unused", "rawtypes" })
-//				Queue result = action.execute(events);
-//			}
+			CSVIngestAction action = new CSVIngestAction(
+					new CSVIngestConfiguration(null, null, null));
+			action.addProcessor(acqProcessor);
+			action.addProcessor(getProcessor("products_1to3", "CLS", "CLS1"));
+			action.addProcessor(getProcessor("products_5", "CLS", "CLS1"));
+			Queue<EventObject> events = new LinkedList<EventObject>();
+
+			for (File file : FileUtils.listFiles(new File("."),
+					new String[] { "csv" }, true)) {
+				LOGGER.info("Loading " + file);
+				FileSystemEvent event = new FileSystemEvent(file,
+						FileSystemEventType.FILE_ADDED);
+				events.add(event);
+				@SuppressWarnings({ "unused", "rawtypes" })
+				Queue result = action.execute(events);
+			}
 		} else {
 			LOGGER.info("The local database is not available");
 		}

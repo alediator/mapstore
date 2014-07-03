@@ -31,7 +31,7 @@ import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
  */
 public class SARWindActionConfiguration extends MetocActionConfiguration {
 
-	protected SARWindActionConfiguration(String id, String name,
+	public SARWindActionConfiguration(String id, String name,
 			String description) {
 		super(id, name, description);
 	}

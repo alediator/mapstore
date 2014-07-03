@@ -31,7 +31,7 @@ import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
  */
 public class SARWaveActionConfiguration extends MetocActionConfiguration {
 
-	protected SARWaveActionConfiguration(String id, String name,
+	public SARWaveActionConfiguration(String id, String name,
 			String description) {
 		super(id, name, description);
 	}
