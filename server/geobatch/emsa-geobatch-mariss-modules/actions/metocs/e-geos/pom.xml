@@ -70,6 +70,11 @@
           <artifactId>netcdf</artifactId>
           <version>4.3.21-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+          <groupId>it.geosolutions.geobatch</groupId>
+          <artifactId>gb-fsm-core</artifactId>
+        </dependency>
         
         <dependency>
           <groupId>it.geosolutions.geobatch</groupId>

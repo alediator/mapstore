@@ -21,6 +21,7 @@
  */
 package it.geosolutions.geobatch.egeos.wave;
 
+import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
 import it.geosolutions.geobatch.metocs.commons.MetocBaseAction;
@@ -75,6 +76,18 @@ public class SARWaveAction extends MetocBaseAction {
     private NetcdfFile ncFileIn = null;
 
     private Attribute referenceTime;
+
+    @Override
+	public boolean canProcess(FileSystemEvent event) {
+		File file = event.getSource();
+		if(file.getName().contains("wave")
+				&& (file.getName().toLowerCase().endsWith(".nc")
+						|| file.getName().toLowerCase().endsWith(".netcdf"))){
+			return true;
+		}else{
+			return false;
+		}
+	}
 
     public SARWaveAction(MetocActionConfiguration configuration) throws IOException {
         super(configuration);

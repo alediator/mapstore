@@ -21,6 +21,7 @@
  */
 package it.geosolutions.geobatch.egeos.wind;
 
+import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.metocs.commons.MetocActionConfiguration;
 import it.geosolutions.geobatch.metocs.commons.MetocBaseAction;
@@ -68,7 +69,7 @@ import ucar.nc2.Variable;
 @Action(configurationClass = SARWindActionConfiguration.class)
 public class SARWindAction extends MetocBaseAction {
 
-    private final static Logger LOGGER = Logger.getLogger(SARWindAction.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(SARWindAction.class.getName());
 
     private NetcdfFileWriteable ncFileOut = null;
 
@@ -79,6 +80,19 @@ public class SARWindAction extends MetocBaseAction {
     public SARWindAction(MetocActionConfiguration configuration) throws IOException {
         super(configuration);
     }
+
+    @Override
+	public boolean canProcess(FileSystemEvent event) {
+		File file = event.getSource();
+		if((file.getName().contains("wind")
+				|| file.getName().contains("wnf"))
+				&& (file.getName().toLowerCase().endsWith(".nc")
+						|| file.getName().toLowerCase().endsWith(".netcdf"))){
+			return true;
+		}else{
+			return false;
+		}
+	}
 
     @Override
     protected File writeDownNetCDF(File outDir, String inputFileName) throws IOException,
@@ -93,15 +107,15 @@ public class SARWindAction extends MetocBaseAction {
             ncFileIn = NetcdfFile.open(inputFileName);
 
             // input dimensions
-            final Dimension ra_size = ncFileIn.findDimension("ra_size");
+            final Dimension ra_size = findDimension(ncFileIn, "ra_size");
 
-            final Dimension az_size = ncFileIn.findDimension("az_size");
+            final Dimension az_size = findDimension(ncFileIn, "az_size");
 
             // input VARIABLES
-            final Variable lonOriginalVar = ncFileIn.findVariable("longitude");
+            final Variable lonOriginalVar = findVariable(ncFileIn, "longitude");
             final DataType lonDataType = lonOriginalVar.getDataType();
 
-            final Variable latOriginalVar = ncFileIn.findVariable("latitude");
+            final Variable latOriginalVar = findVariable(ncFileIn, "latitude");
             final DataType latDataType = latOriginalVar.getDataType();
 
             final Array lonOriginalData = lonOriginalVar.read();

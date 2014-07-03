@@ -19,7 +19,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.geobatch.mariss.action.acqlistfilehandling;
+package it.geosolutions.geobatch.mariss.actions;
 
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
@@ -35,6 +35,7 @@ import it.geosolutions.geobatch.mariss.ingestion.product.DataPackageIngestionPro
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -142,12 +143,9 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 							}
 							JDBCDataStore dataStore = (JDBCDataStore) ds;
 							dataStore.setExposePrimaryKeyColumns(true);
-							doProcess(configuration, dataStore);
-
-							// pass the feature config to the next action
-							ret.add(new FileSystemEvent(((FileSystemEvent) ev)
-									.getSource(),
-									FileSystemEventType.FILE_ADDED));
+							// return next events configurations
+							Queue<EventObject> resultEvents = doProcess(configuration, dataStore);
+							ret.addAll(resultEvents);
 						} finally {
 							ds.dispose();
 						}
@@ -179,11 +177,13 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 	 * 
 	 * @param cfg
 	 * @param dataStore
+	 * @return 
 	 * @throws ActionException
 	 */
-	public void doProcess(RemoteServiceHandlingConfiguration cfg,
+	public Queue<EventObject> doProcess(RemoteServiceHandlingConfiguration cfg,
 			JDBCDataStore dataStore) throws ActionException {
-
+		
+		Queue<EventObject> resultList = new LinkedList<EventObject>();
 		try {
 
 			// Input directory is the temporal directory (for file download)
@@ -258,13 +258,13 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 				int serviceIndex = 0;
 				for (String service : servicesByUser.get(user)) {
 					serviceIndex++;
-					ingestServiceData(user, service, serverProtocol,
+					resultList.addAll(ingestServiceData(user, service, serverProtocol,
 							serverUser, serverPWD, serverHost, serverPort,
 							remotePath, connectMode, timeout,
 							serverResultProtocol, serverResultUser,
 							serverResultPWD, serverResultHost,
 							serverResultPort, resultConnectMode, resultTimeout,
-							inputDir, dataStore, usersSize, userIndex, serviceSize, serviceIndex);
+							inputDir, dataStore, usersSize, userIndex, serviceSize, serviceIndex));
 				}
 			}
 
@@ -273,6 +273,8 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 			throw new ActionException(this, "Error in importing service data",
 					ex);
 		}
+		
+		return resultList;
 
 	}
 
@@ -306,8 +308,9 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 	 * @param serviceSize 
 	 * @param serviceIndex2 
 	 * @param serviceSize2 
+	 * @return 
 	 */
-	protected void ingestServiceData(
+	protected Collection<? extends EventObject> ingestServiceData(
 			String user,
 			String service,
 			// remote browser
@@ -323,6 +326,8 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 			FTPConnectMode resultConnectMode, int resultTimeout,
 			// input dir
 			String inputDir, DataStore dataStore, int usersSize, int userIndex, int serviceSize, int serviceIndex) {
+		
+		Queue<EventObject> resultList = new LinkedList<EventObject>();
 
 		try {
 			// obtain service folders
@@ -478,9 +483,10 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 								int previousSize = pendingCSVFiles.size();
 								boolean error = true;
 								try {
-									String msg = doProcess(dataStore, user,
+									String msg = "Processing events for user: " + user + ", service: "+service;
+									resultList.addAll(getProcessEvents(dataStore, user,
 											service, inputFile, folder,
-											pendingCSVFiles);
+											pendingCSVFiles));
 									error = msg == null;
 									updateProgress(usersSize, userIndex,
 											serviceSize, serviceIndex,
@@ -519,24 +525,24 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 									+ " ignored because was processed after this execution");
 						}
 					}
-
-					// do process when all files in the service has been read
-					doPostProcess(pendingCSVFiles, dataStore, user, service,
+					resultList.addAll(getPostProcessEvents(pendingCSVFiles, dataStore, user, service,
 							localRelativeFolder, serverResultProtocol, folder,
 							folder, folder, resultTimeout, resultConnectMode,
 							resultTimeout,
-							usersSize, userIndex, serviceSize, serviceIndex, serviceFoldersSize, serviceFolderIndex);
+							usersSize, userIndex, serviceSize, serviceIndex, serviceFoldersSize, serviceFolderIndex));
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error browsing remote server", e);
 		}
+		
+		return resultList;
 	}
 
 	/**
-	 * Process the pending CSV files once
+	 * Obtain post process events for CSV files 
 	 * 
-	 * @param pendingCSVFiles2
+	 * @param pendingCSVFiles
 	 * @param dataStore
 	 * @param user
 	 * @param service
@@ -548,16 +554,17 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 	 * @param serverResultPort
 	 * @param resultConnectMode
 	 * @param resultTimeout
-	 * @param serviceFolderFilesSize 
-	 * @param serviceIndex 
-	 * @param serviceSize 
-	 * @param userIndex 
-	 * @param usersSize 
-	 * @param serviceFolderIndex 
+	 * @param usersSize
+	 * @param userIndex
+	 * @param serviceSize
+	 * @param serviceIndex
+	 * @param serviceFoldersSize
+	 * @param serviceFolderIndex
+	 * @return
 	 * @throws IOException
 	 * @throws FTPException
 	 */
-	private void doPostProcess(List<String> pendingCSVFiles,
+	private Collection<? extends EventObject> getPostProcessEvents(List<String> pendingCSVFiles,
 			DataStore dataStore,
 			String user,
 			String service,
@@ -569,6 +576,8 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 			FTPConnectMode resultConnectMode, int resultTimeout, 
 			int usersSize, int userIndex, int serviceSize, int serviceIndex, int serviceFoldersSize, int serviceFolderIndex)
 			throws IOException, FTPException {
+		
+		Queue<EventObject> resultList = new LinkedList<EventObject>();
 
 		// check if each CSV file type 1 to 3 CSV has also a CSV file type 5
 		List<String> failFiles = DataPackageIngestionProcessor
@@ -588,10 +597,12 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 			} else {
 				try {
 					String csvFileName = CSVIngestUtils.getUserServiceFileName(inputFile.getName(), user, service);
-					FileUtils.copyFile(inputFile,
-							new File(configuration.getCsvIngestionPath()
-									+ File.separator + csvFileName));
+					File targetFile = new File(relativeFolder + File.separator + csvFileName);
+					FileUtils.copyFile(inputFile, targetFile);
+					FileSystemEvent event = new FileSystemEvent(targetFile,
+							FileSystemEventType.FILE_ADDED);
 					msg = "Processed "+ inputFile + ". Check the CSV ingestion related";
+					resultList.add(event);
 				} catch (IOException e) {
 					LOGGER.error("Error processing acquisition list ingestion",
 							e);
@@ -613,6 +624,7 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 					null, error, msg, inputFile.getAbsolutePath());
 		}
 
+		return resultList;
 	}
 
 	/**
@@ -692,19 +704,24 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 	 * @param folder
 	 * @return
 	 */
-	private String doProcess(DataStore dataStore, String user, String service,
+	private Collection<? extends EventObject> getProcessEvents(DataStore dataStore, String user, String service,
 			File inputFile, String folder, List<String> pendingCSVFiles) {
+		
+		Queue<EventObject> resultList = new LinkedList<EventObject>();
 		String msg = null;
 
 		// TODO: add known folders for other ingestions
 		if (ACQ_LIST_FOLDER.equals(folder)) {
 			// copy to target folder
 			try {
+
 				String csvFileName = CSVIngestUtils.getUserServiceFileName(inputFile.getName(), user, service);
-				FileUtils.copyFile(inputFile,
-						new File(configuration.getCsvIngestionPath()
-								+ File.separator + csvFileName));
+				File targetFile = new File(folder + File.separator + csvFileName);
+				FileUtils.copyFile(inputFile, targetFile);
+				FileSystemEvent event = new FileSystemEvent(targetFile,
+						FileSystemEventType.FILE_ADDED);
 				msg = "Processed "+ inputFile + ". Check the CSV ingestion related";
+				resultList.add(event);
 			} catch (IOException e) {
 				msg = "Error processing acquisition list ingestion";
 				LOGGER.error(msg, e);
@@ -715,26 +732,21 @@ public class RemoteServiceHandlingAction extends BaseAction<EventObject> {
 				pendingCSVFiles.add(filePath);
 				msg = "Pending "+ inputFile + " for checks at the end of the service files.";
 			} else {
-				// Data package product ingestion processor
-				DataPackageIngestionProcessor dataPackageProcessor = new DataPackageIngestionProcessor(
-						dataStore,
-						configuration.getDlrProductIngestionTypeName(), user,
-						service, configuration.getDlrProductsTiffFolder());
-				dataPackageProcessor.setImageMosaicConfiguration(configuration
-						.getDlrProductsIMConfiguration());
-				dataPackageProcessor.setCsvIngestionPath(configuration.getCsvIngestionPath());
 				try {
-					// Data package product ingestion
-					if (dataPackageProcessor.canProcess(filePath)) {
-						msg = dataPackageProcessor.doProcess(filePath);
-					}
+					String newFileName = CSVIngestUtils.getUserServiceFileName(inputFile.getName(), user, service);
+					File targetFile = new File(folder + File.separator + newFileName);
+					FileUtils.copyFile(inputFile, targetFile);
+					FileSystemEvent event = new FileSystemEvent(targetFile,
+							FileSystemEventType.FILE_ADDED);
+					msg = "Processed "+ inputFile + " in a data package action.";
+					resultList.add(event);
 				} catch (IOException e) {
 					msg = "Error processing DLR product ingestion";
 					LOGGER.error(msg, e);
 				}
 			}
 		}
-		return msg;
+		return resultList;
 	}
 
 	/**

@@ -19,12 +19,23 @@
  */
 package it.geosolutions.geobatch.mariss.action.acqlistfilehandling;
 
+import static org.junit.Assert.assertNotNull;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
 import it.geosolutions.geobatch.actions.ds2ds.dao.FeatureConfiguration;
+import it.geosolutions.geobatch.catalog.impl.TimeFormat;
+import it.geosolutions.geobatch.catalog.impl.configuration.TimeFormatConfiguration;
 import it.geosolutions.geobatch.destination.common.utils.RemoteBrowserProtocol;
 import it.geosolutions.geobatch.imagemosaic.ImageMosaicConfiguration;
 import it.geosolutions.geobatch.imagemosaic.config.DomainAttribute;
+import it.geosolutions.geobatch.mariss.actions.CSVIngestAction;
+import it.geosolutions.geobatch.mariss.actions.CSVIngestConfiguration;
+import it.geosolutions.geobatch.mariss.ingestion.csv.CSVAcqListProcessor;
+import it.geosolutions.geobatch.mariss.ingestion.csv.CSVProductTypes1To3Processor;
+import it.geosolutions.geobatch.mariss.ingestion.csv.CSVProductTypes5Processor;
+import it.geosolutions.geobatch.mariss.ingestion.csv.MarissCSVServiceProcessor;
+import it.geosolutions.geobatch.mariss.ingestion.product.DataPackageIngestionConfiguration;
+import it.geosolutions.geobatch.mariss.ingestion.product.DataPackageIngestionProcessor;
 import it.geosolutions.geobatch.remoteBrowser.configuration.RemoteBrowserConfiguration;
 
 import java.io.File;
@@ -50,10 +61,46 @@ public class RemoteServiceHandlingActionTest {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(RemoteServiceHandlingActionTest.class);
 
-	public RemoteServiceHandlingActionTest() {
-		super();
+	/**
+	 * Simple test for the remote service action flow
+	 * @throws Exception
+	 */
+	@Test
+	public void testRemoteServiceHandling() throws Exception {
+		// configure
+		RemoteServiceHandlingConfiguration configuration = loadDefaultConfiguration();
+		RemoteServiceHandlingAction action = new RemoteServiceHandlingAction(configuration);
+		// launch
+		Queue<EventObject> events = new LinkedList<EventObject>();
+		File file = new File("/tmp/dummy");
+		LOGGER.info("Loading " + file);
+		FileSystemEvent event = new FileSystemEvent(file,
+				FileSystemEventType.FILE_ADDED);
+		events.add(event);
+		// First process
+		Queue<EventObject> result = action.execute(events);
+		assertNotNull(result);
+		LOGGER.info("Result REMOTE: " + result);
+		// Data package process in the flow
+		DataPackageIngestionProcessor dataPackageAction = new DataPackageIngestionProcessor(getDataPackageConfiguration());
+		result = dataPackageAction.execute(result);
+		assertNotNull(result);
+		LOGGER.info("Result DATA PACKAGE: " + result);
+		// CSV ingestion
+		CSVIngestAction csvAction = new CSVIngestAction(
+				new CSVIngestConfiguration(null, null, null));
+		csvAction.addProcessor(getProcessor("acq_list", "CLS", "CLS1"));
+		csvAction.addProcessor(getProcessor("products_1to3", "CLS", "CLS1"));
+		csvAction.addProcessor(getProcessor("products_5", "CLS", "CLS1"));
+		result = csvAction.execute(result);
+		assertNotNull(result);
+		LOGGER.info("Result CSV: " + result);
+		// TODO: NetCDF ingestion and ImageMosaic ingestion
 	}
 	
+	/**
+	 * @return connection parameters for the database
+	 */
 	private Map<String, Serializable> getConnectionParameters(){
 		Map<String, Serializable> params = new HashMap<String, Serializable>();
 		//TODO: load from properties
@@ -99,25 +146,51 @@ public class RemoteServiceHandlingActionTest {
 		
 		return imConfig;
 	}
+	
+	/**
+	 * @return DataPackageIngestionConfiguration for test
+	 */
+	private DataPackageIngestionConfiguration getDataPackageConfiguration(){
+		DataPackageIngestionConfiguration configuration = new DataPackageIngestionConfiguration(null, null, null);
+		configuration.setTargetTifFolder("target");
+		configuration.setTypeName("dlr_ships");
+		configuration.setCsvIngestionPath("");
+		FeatureConfiguration outputFeature = new FeatureConfiguration();
+		outputFeature.setDataStore(getConnectionParameters());
+		configuration.setOutputFeature(outputFeature);
+		configuration.setImageMosaicConfiguration(getImageMosaicConfiguration());
+		return configuration;
+	}
 
 	/**
-	 * Simple test for the remote service action
-	 * @throws Exception
+	 * Generate a MarissCSVServiceProcessor processor to test 
+	 * @return the processor
 	 */
-	@Test
-	public void testRemoteServiceHandling() throws Exception {
-		// configure
-		RemoteServiceHandlingConfiguration configuration = loadDefaultConfiguration();
-		RemoteServiceHandlingAction action = new RemoteServiceHandlingAction(configuration);
-		// launch
-		Queue<EventObject> events = new LinkedList<EventObject>();
-		File file = new File("/tmp/dummy");
-		LOGGER.info("Loading " + file);
-		FileSystemEvent event = new FileSystemEvent(file,
-				FileSystemEventType.FILE_ADDED);
-		events.add(event);
-		@SuppressWarnings({ "unused", "rawtypes" })
-		Queue result = action.execute(events);
+	private MarissCSVServiceProcessor getProcessor(String typeName, String userName, String serviceName) {
+		MarissCSVServiceProcessor processor = null;
+		try {
+			if("acq_list".equals(typeName)){
+				processor = new CSVAcqListProcessor(getConnectionParameters(), typeName,
+						new TimeFormat(null, null, "Time format default",
+								new TimeFormatConfiguration(null, null,
+										"Time format configuration")));
+			}else if("products_1to3".equals(typeName)){
+				processor = new CSVProductTypes1To3Processor(getConnectionParameters(), typeName,
+						new TimeFormat(null, null, "Time format default",
+								new TimeFormatConfiguration(null, null,
+										"Time format configuration")));
+			}else if("products_5".equals(typeName)){
+				processor = new CSVProductTypes5Processor(getConnectionParameters(), typeName,
+						new TimeFormat(null, null, "Time format default",
+								new TimeFormatConfiguration(null, null,
+										"Time format configuration")));
+			}
+			processor.setUserName(userName);
+			processor.setServiceName(serviceName);
+		} catch (Exception e) {
+			LOGGER.error("Error getting the processor", e);
+		}
+		return processor;
 	}
 
 	private RemoteServiceHandlingConfiguration loadDefaultConfiguration() {

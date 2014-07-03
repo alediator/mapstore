@@ -19,14 +19,23 @@
  */
 package it.geosolutions.geobatch.mariss.ingestion.product;
 
+import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
+import it.geosolutions.geobatch.actions.ds2ds.util.FeatureConfigurationUtil;
+import it.geosolutions.geobatch.annotations.Action;
+import it.geosolutions.geobatch.flow.event.action.ActionException;
+import it.geosolutions.geobatch.mariss.ingestion.csv.utils.CSVIngestUtils;
 import it.geosolutions.geobatch.mariss.ingestion.csv.utils.DecompressUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.EventObject;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
@@ -35,6 +44,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import net.opengis.gml.DirectPositionType;
 
 import org.geotools.data.DataStore;
+import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,10 +64,16 @@ import eu.europa.emsa.csndc.ShipType;
  * @author alejandro.diaz at geo-solutions.it
  * 
  */
+@Action(configurationClass = DataPackageIngestionConfiguration.class)
 public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 
 	protected final static Logger LOGGER = LoggerFactory
 			.getLogger(DataPackageIngestionProcessor.class);
+
+	/**
+	 * Action configuration
+	 */
+	private DataPackageIngestionConfiguration configuration;
 
 	private static final String Q_NAME_ID = "id";
 	private static final String Q_NAME_INCLUDE_IN_REPORT = "includeInReport";
@@ -69,10 +85,37 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 	private static final String Q_NAME_CONFIDENCE_LEVEL = "confidenceLevel";
 	private static final String Q_NAME_IMAGE_IDENTIFIER = "imageIdentifier";
 	private static final String Q_NAME_IMAGE_SPEED = "speed";
+	
+	/**
+	 * CSV products type 1 to 3 files must have this in the name
+	 */
+	public static final String CSV_TYPE_1_TO_3= "type_1to3";
+	
+	/**
+	 * CSV products type 5 files must have this in the name
+	 */
+	public static final String CSV_TYPE_5= "type_5";
 
 	// constructors
+
+	public DataPackageIngestionProcessor(
+			final DataPackageIngestionConfiguration configuration)
+			throws IOException {
+		super(configuration);
+		this.configuration = configuration;
+		this.typeName = configuration.getTypeName();
+		this.userName = configuration.getUserName();
+		this.serviceName = configuration.getServiceName();
+		this.targetTifFolder = configuration.getTargetTifFolder();
+		this.imageMosaicConfiguration = configuration.getImageMosaicConfiguration();
+	}
+	
 	public DataPackageIngestionProcessor() {
 		super();
+	}
+
+	public DataPackageIngestionProcessor(String id, String name, String description) {
+	    super(id, name, description);
 	}
 
 	public DataPackageIngestionProcessor(DataStore dataStore, String typeName) {
@@ -106,8 +149,12 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 	 * @return
 	 * @throws IOException
 	 */
-	public String processCompressedFile(String compressedFile)
+	public Collection<? extends EventObject> processCompressedFile(String compressedFile)
 			throws IOException {
+
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+		
 		String msg = null;
 
 		String zipPath = workingDir
@@ -135,13 +182,14 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 					imageFile = file;
 				}
 			}
-			msg = ingestData(processedShips, inPackageShips, ships, imageFile);
+			ret.addAll(ingestData(processedShips, inPackageShips, ships, imageFile));
 		} else {
 			throw new IOException(
 					"The file isn't a zip file or an error occur trying to decompress");
 		}
 
-		return msg;
+//		return msg;
+		return ret;
 	}
 
 	/**
@@ -195,8 +243,12 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 	 * @param tifFile
 	 * @return
 	 */
-	private String ingestData(List<String> processedShips,
+	private Collection<? extends EventObject> ingestData(List<String> processedShips,
 			List<String> inPackageShips, List<ShipType> ships, File imageFile) {
+
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Tif file is  --> " + imageFile);
 			LOGGER.trace("Ships are  --> " + ships);
@@ -213,13 +265,14 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 		if (imageFile != null) {
 			if (imageFile.getName().endsWith(".tif")) {
 				// add the image mosaic
-				addImageMosaic(imageFile);
+				ret.add(addImageMosaic(imageFile));
 			} else if (imageFile.getName().endsWith(".nc")) {
 				// add NetCDF image
-				addNetCDF(imageFile);
+				ret.add(addNetCDF(imageFile));
 			}
 		}
-		return "Succesfully insert of " + shipList.size() + " ships";
+//		return "Succesfully insert of " + shipList.size() + " ships";
+		return ret;
 	}
 
 	/**
@@ -317,15 +370,171 @@ public class DataPackageIngestionProcessor extends ProductIngestionProcessor {
 		return feature;
 	}
 
+	/**
+	 * Check file formats
+	 */
 	@Override
 	public boolean canProcess(String filePath) {
-		// TODO Auto-generated method stub
-		return true;
+		if(filePath.endsWith(".zip") 
+				|| filePath.endsWith(".tgz")){
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	@Override
-	public String doProcess(String filePath) throws IOException {
+	public Collection<? extends EventObject> doProcess(String filePath) throws IOException {
 		return processCompressedFile(filePath);
+	}
+
+	/**
+	 * Check if the CSV files are correct (have a type1to3 and type5 files)
+	 * 
+	 * @param csvFiles
+	 * 
+	 * @return not complete files
+	 */
+	public static List<String> checkCSVFiles(List<String> csvFiles) {
+		// check if each CSV file type 1 to 3 CSV has also a CSV file type 5 
+		List<String> csvType1To3 = new LinkedList<String>();
+		List<String> csvType5 = new LinkedList<String>();
+		List<String> csvNotCompleted = new LinkedList<String>();
+		
+		// distinct both lists
+		for(String name: csvFiles){
+			if(name.contains(CSV_TYPE_1_TO_3)){
+				csvType1To3.add(name);
+			}else if(name.contains(CSV_TYPE_5)){
+				csvType5.add(name);
+			}
+		}
+		
+		// check one by one
+		for(String name: csvType1To3){
+			String csv5File = name.replace(CSV_TYPE_1_TO_3, CSV_TYPE_5);
+			if(csvType5.contains(csv5File)){
+				// both files are available
+				csvType5.remove(csv5File);
+			}else{
+				// not available the CSV type 5
+				csvNotCompleted.add(name);
+			}
+		}
+		
+		// all files in csvType5 list haven't a CSV type 1 to 3
+		csvNotCompleted.addAll(csvType5);
+		
+		return csvNotCompleted;
+	}
+
+	@Override
+	public Queue<EventObject> execute(Queue<EventObject> events)
+			throws ActionException {
+
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+
+		while (events.size() > 0) {
+			final EventObject ev;
+			try {
+				if ((ev = events.remove()) != null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Working on incoming event: "
+								+ ev.getSource());
+					}
+					if (ev instanceof FileSystemEvent) {
+						FileSystemEvent fileEvent = (FileSystemEvent) ev;
+						@SuppressWarnings("unused")
+						File file = fileEvent.getSource();
+						// Don't read configuration for the file, just
+						// this.outputfeature configuration
+						DataStore ds = FeatureConfigurationUtil
+								.createDataStore(configuration
+										.getOutputFeature());
+						if (ds == null) {
+							throw new ActionException(this,
+									"Can't find datastore ");
+						}
+						try {
+							if (!(ds instanceof JDBCDataStore)) {
+								throw new ActionException(this,
+										"Bad Datastore type "
+												+ ds.getClass().getName());
+							}
+							JDBCDataStore dataStore = (JDBCDataStore) ds;
+							dataStore.setExposePrimaryKeyColumns(true);
+//							doProcess(configuration, dataStore);
+//
+//							// pass the feature config to the next action
+//							ret.add(new FileSystemEvent(((FileSystemEvent) ev)
+//									.getSource(),
+//									FileSystemEventType.FILE_ADDED));
+							// return next events configurations
+							Queue<EventObject> resultEvents = doProcess(dataStore, file, (FileSystemEvent) ev);
+							ret.addAll(resultEvents);
+						} finally {
+							ds.dispose();
+						}
+					}
+
+					// add the event to the return
+					ret.add(ev);
+
+				} else {
+					if (LOGGER.isErrorEnabled()) {
+						LOGGER.error("Encountered a NULL event: SKIPPING...");
+					}
+					continue;
+				}
+			} catch (Exception ioe) {
+				final String message = "Unable to produce the output: "
+						+ ioe.getLocalizedMessage();
+				if (LOGGER.isErrorEnabled())
+					LOGGER.error(message, ioe);
+
+				throw new ActionException(this, message);
+			}
+		}
+		return ret;
+	}
+
+	private Queue<EventObject> doProcess(
+			JDBCDataStore dataStore,
+			File file,
+			FileSystemEvent orginalEvent) throws IOException {
+		
+		
+		LOGGER.info("Trying to process " + file.getName());
+
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+		
+		if(canProcess(file.getAbsolutePath())){
+			// get user name and service name from the name of the ingestion
+			String fileName = file.getName();
+			if(fileName != null){
+				Map<String, String> fileParameters = CSVIngestUtils.getParametersFromName(fileName);
+				if(fileParameters.containsKey(CSVIngestUtils.USER_FILE_PARAMETER)){
+					userName = fileParameters.get(CSVIngestUtils.USER_FILE_PARAMETER);
+				}
+				if(fileParameters.containsKey(CSVIngestUtils.SERVICE_FILE_PARAMETER)){
+					serviceName = fileParameters.get(CSVIngestUtils.SERVICE_FILE_PARAMETER);
+				}
+			}
+			prepare(dataStore, configuration.getTypeName());
+			ret.addAll(doProcess(file.getAbsolutePath()));
+		}else{
+			// is not processed in this action
+			ret.add(orginalEvent);
+		}
+		return ret;
+	}
+
+	@Override
+	public boolean checkConfiguration() {
+		// TODO Auto-generated method stub
+		return true;
 	}
 
 }

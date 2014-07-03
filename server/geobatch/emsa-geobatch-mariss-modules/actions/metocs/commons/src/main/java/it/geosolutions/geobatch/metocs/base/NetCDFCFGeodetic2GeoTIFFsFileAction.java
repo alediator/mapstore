@@ -22,7 +22,6 @@
 package it.geosolutions.geobatch.metocs.base;
 
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
-import it.geosolutions.filesystemmonitor.monitor.FileSystemEventType;
 import it.geosolutions.geobatch.annotations.Action;
 import it.geosolutions.geobatch.flow.event.action.ActionException;
 import it.geosolutions.geobatch.flow.event.action.BaseAction;
@@ -39,9 +38,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.TimeZone;
@@ -165,6 +166,70 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
      * EXECUTE METHOD
      */
     public Queue<EventObject> execute(Queue<EventObject> events) throws ActionException {
+    	
+    	// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+		
+        if (LOGGER.isLoggable(Level.INFO))
+            LOGGER.info("MetocBaseAction:execute(): Starting with processing...");
+        try {
+        	// iterate in the queue and process each one we could process
+    		while (!events.isEmpty()) {
+    			EventObject event = events.poll();
+    			if (event instanceof FileSystemEvent) {
+    				FileSystemEvent fse = (FileSystemEvent) event;
+    	            // check if can't process
+    	            if(canProcess(fse)){
+    	            	ret.addAll(doProcess(adapter(fse)));
+    	            }else{
+    					// add the event to the return
+    					ret.add(fse);
+    				}
+    			} else {
+					// add the event to the return
+					ret.add(event);
+    				//throw new ActionException(this, "EventObject not handled " + event);
+    			}
+    		}
+    		
+        } catch (Throwable t) {
+            LOGGER.log(Level.SEVERE, t.getLocalizedMessage(), t);
+        }
+        
+        return ret;
+    }
+
+    /**
+     * Check if can process the file event
+     * @param fse
+     * @return
+     */
+	private boolean canProcess(FileSystemEvent fse) {
+		boolean canProcess = false; 
+		try{
+			File file = fse.getSource();
+			if(file.getName().toLowerCase().endsWith(".nc")
+					|| file.getName().toLowerCase().endsWith(".netcdf")){
+				NetcdfEvent event = adapter(fse);
+				canProcess = event != null;
+			}
+		}catch (Exception e){
+			canProcess = false;
+		}
+		return canProcess;
+	}
+
+	/**
+	 * Process the file event and return new events queue
+	 * 
+	 * @param event
+	 * @return
+	 */
+    private Collection<? extends EventObject> doProcess(NetcdfEvent event) {
+
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+    	
 
         if (LOGGER.isLoggable(Level.INFO))
             LOGGER.info("NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Starting with processing...");
@@ -172,12 +237,12 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
         NetcdfFile ncFileIn = null;
         try {
             // looking for file
-            if (events.size() != 1)
-                throw new IllegalArgumentException(
-                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Wrong number of elements for this action: "
-                                + events.size());
-
-            NetcdfEvent event = adapter(events.remove());
+//            if (events.size() != 1)
+//                throw new IllegalArgumentException(
+//                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Wrong number of elements for this action: "
+//                                + events.size());
+//
+//            NetcdfEvent event = adapter(events.remove());
 
             ncFileIn = event.getSource();
 
@@ -468,7 +533,6 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                         String fileName = 
                                 layerDir.getAbsoluteFile() + File.separator + inputFileName + "_"
                                         + varName;
-                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);
 
                         for (int z = 0; z < (hasLocalZLevel ? nZeta : 1); z++) {
                             for (int t = 0; t < (timeDimExists ? nTime : 1); t++) {
@@ -515,33 +579,36 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                             }
                         }
 
-                        // serialize the output
-
-                        File command = null;
-                        try {
-                            command = ImageMosaicCommand.serialize(cmd, workingDir + File.separator
-                                    + inputFileName + "_" + varName + "_"
-                                    + Thread.currentThread().getId() + IMAGEMOSAIC_COMMAND_FILE);
-
-                        } catch (Throwable t) {
-                            if (LOGGER.isLoggable(Level.SEVERE))
-                                LOGGER.log(Level.SEVERE,
-                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Unable to serialize command:"
-                                                + t.getLocalizedMessage(), t);
-                        }
-
-                        // append the ImageMosaicCommand file to the output queue
-
-                        if (command != null) {
-                            // ... setting up the appropriate event for the next
-                            // action
-                            events.add(new FileSystemEvent(command, FileSystemEventType.FILE_ADDED));
-                        } else {
-                            if (LOGGER.isLoggable(Level.SEVERE))
-                                LOGGER.log(Level.SEVERE,
-                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): "
-                                                + "Unable to get a serialized command file");
-                        }
+//                        // serialize the output
+//
+//                        File command = null;
+//                        try {
+//                            command = ImageMosaicCommand.serialize(cmd, workingDir + File.separator
+//                                    + inputFileName + "_" + varName + "_"
+//                                    + Thread.currentThread().getId() + IMAGEMOSAIC_COMMAND_FILE);
+//
+//                        } catch (Throwable t) {
+//                            if (LOGGER.isLoggable(Level.SEVERE))
+//                                LOGGER.log(Level.SEVERE,
+//                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Unable to serialize command:"
+//                                                + t.getLocalizedMessage(), t);
+//                        }
+//
+//                        // append the ImageMosaicCommand file to the output queue
+//
+//                        if (command != null) {
+//                            // ... setting up the appropriate event for the next
+//                            // action
+//                        	ret.add(new FileSystemEvent(command, FileSystemEventType.FILE_ADDED));
+//                        } else {
+//                            if (LOGGER.isLoggable(Level.SEVERE))
+//                                LOGGER.log(Level.SEVERE,
+//                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): "
+//                                                + "Unable to get a serialized command file");
+//                        }
+                        LOGGER.info("FIXME: Move on with IMC "+ fileName);
+//                        ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);
+//                        ret.add(new EventObject(cmd));
                     } else {
                         if (LOGGER.isLoggable(Level.SEVERE))
                             LOGGER.log(Level.SEVERE,
@@ -554,7 +621,7 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                 }
             }
 
-            return events;
+            return ret;
         } catch (Throwable t) {
             if (LOGGER.isLoggable(Level.SEVERE))
                 LOGGER.log(
@@ -574,10 +641,10 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                                     + e.getLocalizedMessage(), e);
             }
         }
-        return null;
-    }
+        return ret;
+	}
 
-    /**
+	/**
      * @param timeOriginalData
      * @param timeOriginalIndex
      * @param t

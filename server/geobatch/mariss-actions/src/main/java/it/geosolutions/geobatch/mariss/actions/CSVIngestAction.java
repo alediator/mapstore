@@ -19,7 +19,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.geobatch.mariss.action.csv;
+package it.geosolutions.geobatch.mariss.actions;
 
 import it.geosolutions.filesystemmonitor.monitor.FileSystemEvent;
 import it.geosolutions.geobatch.annotations.Action;
@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import org.apache.tools.ant.taskdefs.optional.Cab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -109,6 +110,9 @@ public class CSVIngestAction extends BaseAction<EventObject> implements
 	public Queue<EventObject> execute(Queue<EventObject> events)
 			throws ActionException {
 
+		// return object
+		final Queue<EventObject> ret = new LinkedList<EventObject>();
+
 		listenerForwarder.setTask("Check config");
 
 		// @autowired fields are injected *after* the checkConfiguration() is
@@ -127,18 +131,42 @@ public class CSVIngestAction extends BaseAction<EventObject> implements
 			if (event instanceof FileSystemEvent) {
 				FileSystemEvent fse = (FileSystemEvent) event;
 				File file = fse.getSource();
-				processCSVFile(file);
+				if(canProcess(file)){
+					processCSVFile(file);
+				}else{
+					// add the event to the return
+					ret.add(fse);
+				}
+				
 				// throw new ActionException(this, "Could not process " +
 				// event);
 			} else {
-				throw new ActionException(this, "EventObject not handled "
-						+ event);
+				// add the event to the return
+				ret.add(event);
+//				throw new ActionException(this, "EventObject not handled "
+//						+ event);
 			}
 		}
 
-		return new LinkedList<EventObject>();
+		return ret;
 	}
 	
+	/**
+	 * Check if a file can be processed in this action
+	 * 
+	 * @param file
+	 * @return
+	 */
+	private boolean canProcess(File file) {
+		String fileName = file.getName();
+		//TODO check processors also
+		if(fileName.endsWith(".csv")){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	protected void processCSVFile(File file) throws ActionException {
 		LOGGER.info("Processing input file " + file);
 

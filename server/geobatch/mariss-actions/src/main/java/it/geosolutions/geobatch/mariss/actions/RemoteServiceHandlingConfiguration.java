@@ -19,7 +19,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.geosolutions.geobatch.mariss.action.acqlistfilehandling;
+package it.geosolutions.geobatch.mariss.actions;
 
 import it.geosolutions.geobatch.actions.ds2ds.Ds2dsConfiguration;
 import it.geosolutions.geobatch.catalog.impl.configuration.TimeFormatConfiguration;
@@ -105,7 +105,17 @@ private String dlrProductsTiffFolder;
  */
 private String dlrProductIngestionTypeName;
 
+/**
+ * Relative path for the CSV ingestion
+ */
 private String csvIngestionPath;
+
+///**
+// * 
+// */
+//private String netCDFWavePath;
+//
+//private String netCDFWindPath;
 
 public RemoteServiceHandlingConfiguration(String id, String name, String description) {
     super(id, name, description);
