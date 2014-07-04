@@ -578,34 +578,7 @@ public class NetCDFCFGeodetic2GeoTIFFsFileAction extends BaseAction<EventObject>
                                 addList.add(gtiffFile);
                             }
                         }
-
-//                        // serialize the output
-//
-//                        File command = null;
-//                        try {
-//                            command = ImageMosaicCommand.serialize(cmd, workingDir + File.separator
-//                                    + inputFileName + "_" + varName + "_"
-//                                    + Thread.currentThread().getId() + IMAGEMOSAIC_COMMAND_FILE);
-//
-//                        } catch (Throwable t) {
-//                            if (LOGGER.isLoggable(Level.SEVERE))
-//                                LOGGER.log(Level.SEVERE,
-//                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): Unable to serialize command:"
-//                                                + t.getLocalizedMessage(), t);
-//                        }
-//
-//                        // append the ImageMosaicCommand file to the output queue
-//
-//                        if (command != null) {
-//                            // ... setting up the appropriate event for the next
-//                            // action
-//                        	ret.add(new FileSystemEvent(command, FileSystemEventType.FILE_ADDED));
-//                        } else {
-//                            if (LOGGER.isLoggable(Level.SEVERE))
-//                                LOGGER.log(Level.SEVERE,
-//                                        "NetCDFCFGeodetic2GeoTIFFsFileAction::execute(): "
-//                                                + "Unable to get a serialized command file");
-//                        }
+                        // delegated on ImageMosaicCommand
                         if(LOGGER.isLoggable(Level.FINE))
                         	LOGGER.log(Level.FINE, "Move on with IMC "+ fileName);
                         ImageMosaicCommand cmd = new ImageMosaicCommand(new File(fileName), addList, null);

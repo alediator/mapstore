@@ -91,6 +91,8 @@ public class CustomImageMosaicAction extends ImageMosaicAction{
 		// only available for the imc command in the event 
 		// (delegated from product ingestion / NetCDFToGeotiff actions)
 		if (innerObject instanceof ImageMosaicCommand){
+			// copy default configuration
+			((ImageMosaicCommand)innerObject).copyConfigurationIntoCommand(getConfiguration());
 			return true;
 		}else{
 			return false;
